@@ -16,4 +16,10 @@
             $this->sentencia = "UPDATE usuario SET pwd='$pwd' WHERE id='$matricula'";
             return $this->ejecutar_sentencia(); // Se ejecuta la sentencia SQL y se devuelve el resultado
         }
+
+        public function matricula_alumno($alumno_id, $grupo_id) { 
+            $this->sentencia = "INSERT INTO matriculado (alumno_id, grupo_id) VALUES ('$alumno_id', '$grupo_id')";
+            return $this->ejecutar_sentencia();
+        }
     }
+?>
