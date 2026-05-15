@@ -23,6 +23,7 @@
             <nav class="menu-lateral">
                 <a href="?accion=listara">Listar compañeros</a>
                 <a href="?accion=listarp">Listar profesores</a>
+                <a href="?accion=faltasasistencias">Faltas y asistencias</a>
                 <a href="?accion=vercalificaciones">Ver calificaciones</a>
             </nav>
         </aside>
@@ -203,8 +204,45 @@
             else {
                 echo "<h3>Seleccione una opción del menú</h3>";
             }
-            ?>
 
+            /* =====================================================
+            LISTAR ASIGNATURAS para FALTAS DE ASISTENCIA
+            ===================================================== */
+
+            if ($accion == 'faltasasistencias' && $grupo_id) {
+
+                $res = $objAlumno->FaltasAsistencias($alumno_id, $grupo_id);
+
+                echo "<h2>Mis asignaturas</h2>";
+
+                if ($res && $res->num_rows > 0) {
+                    echo "<table class='tabla-alumno'>
+                            <thead>
+                                <tr>
+                                    <th>Asignatura</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>";
+                            
+
+                    while ($fila = $res->fetch_assoc()) {
+                        echo "<tr>
+                                <td>{$fila['asignatura']}</td>
+                                <td>
+                                    <a class='btn'
+                                    href='?accion=faltasasistencias&grupo_id={$fila['grupo_id']}'>
+                                    Ver faltas y asistencias
+                                    </a>
+                                </td>
+                            </tr>";
+                    }
+                    echo "</table>";
+                } else {
+                    echo "<p>No hay asignaturas.</p>";
+                }
+            }
+            ?>
+            
             </div>
         </main>
     </div>

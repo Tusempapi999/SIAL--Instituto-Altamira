@@ -66,5 +66,33 @@ class alumno extends user {
         ";
         return $this->obtener_sentencia();
     }
+
+    //VER FALTAS Y ASISTENCIAS DE UNA ASIGNATURA
+    public function FaltasAsistencias($alumno_id, $grupo_id) {
+        $this->sentencia = "
+            SELECT matriculado.id AS matriculado_id, 
+                    asignatura.nombre AS asignatura_nombre,
+                    grupo.grado,
+                    grupo.letra_grupo
+                FROM matriculado
+                INNER JOIN grupo ON matriculado.grupo_id = grupo.id
+                INNER JOIN asignatura ON grupo.asignatura_id = asignatura.id
+                WHERE matriculado.alumno_id = '$alumno_id'
+        ";
+        return $this->obtener_sentencia();
+    }
+
+    // ===== LISTAR ASIGNATURAS PARA EL PANEL DE ASISTENCIA =====
+    public function verFaltasAsistencia($matriculado_id) {
+        $this->sentencia = "
+            SELECT fecha, estado FROM asistencia
+                    WHERE matriculado_id = '$matriculado_id'
+                    AND estado != 'presente'
+                    ORDER BY fecha DESC
+        ";
+        return $this->obtener_sentencia();
+    }
+
+    
 }
 ?>
