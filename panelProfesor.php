@@ -54,9 +54,6 @@
                 <span class="nombre">Profesor</span>
                 <div class="circulo"></div>
                 <div class="menu">
-                    <div class="notificaciones">
-                        Opciones
-                    </div>        
                     <a href="inicio.php" class="salir">Finalizar sesión</a>
                 </div>
             </div>

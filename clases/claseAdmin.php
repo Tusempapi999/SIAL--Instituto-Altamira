@@ -16,4 +16,6 @@
             $this->sentencia = "UPDATE usuario SET pwd='$pwd' WHERE id='$matricula'";
             return $this->ejecutar_sentencia(); // Se ejecuta la sentencia SQL y se devuelve el resultado
         }
+
+        
     }

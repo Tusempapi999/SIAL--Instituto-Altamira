@@ -1,213 +1,186 @@
 <!DOCTYPE html>
 <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <title>Panel Alumno</title>
-        <link rel="stylesheet" href="visual_maestro.css">
-    </head>
-    <body>
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Administrador</title>
+    <link rel="stylesheet" href="visual_maestro.css">
+</head>
+<body>
 
-    <div class="contenedor">
+<div class="contenedor">
 
-        <!-- SIDEBAR -->
-        <aside class="sidebar">
-            <div class="logo">
-                SIAL<br><span>Altamira</span>
-            </div>
+    <aside class="sidebar">
+        <div class="logo">
+            Colegio<br><span>Nuevo Futuro</span>
+        </div>
+        <nav class="menu-lateral">
+            __________________________________
+            <a href="?opcion=listar">Listar asignaturas</a>
+            __________________________________
+            <a href="?opcion=matricular">Matricular alumno</a>
+            __________________________________
+        </nav>
+    </aside>
 
-            <?php
-            // SIMULACIÓN (luego va por SESSION)
-            $alumno_id = 1; // ESTE ES alumno.id (NO usuario.id)
-            ?>
+    <main class="contenido">
 
-            <nav class="menu-lateral">
-                <a href="?accion=listara">Listar compañeros</a>
-                <a href="?accion=listarp">Listar profesores</a>
-                <a href="?accion=vercalificaciones">Ver calificaciones</a>
-            </nav>
-        </aside>
+        <header class="barra-superior">
+            <h2>Bienvenido al panel del Administrador</h2>
 
-        <!-- CONTENIDO -->
-        <main class="contenido">
-
-            <header class="barra-superior">
-                <h2>Panel del Alumno</h2>
-                <div class="perfil">
-                <span class="nombre">Alumno</span>
+            <div class="perfil">
+                <span class="nombre">Administrador</span>
                 <div class="circulo"></div>
-
-                <!-- MENÚ DESPLEGABLE -->
                 <div class="menu">
-                    <div class="notificaciones">
-                        Opciones
-                    </div>        
+                    <div class="notificaciones">Notificaciones</div>
                     <a href="inicio.php" class="salir">Finalizar sesión</a>
                 </div>
-    
             </div>
-            </header>
-            
+        </header>
 
-            <div class="panel-vacio">
+        <div class="panel-vacio">
+        <?php
+        include('clases/ClaseAsignaturas.php');
+        $asignatura = new Asignatura();
 
-            <?php
-            include('clases/claseAlumno.php');
-            $objAlumno = new alumno();
+        /* ================== ALTA ================== */
+        if (isset($_GET['opcion']) && $_GET['opcion'] == "alta") {
+        ?>
+            <h2>Registrar una nueva asignatura</h2>
 
-            $accion   = $_GET['accion']   ?? '';
-            $grupo_id = $_GET['grupo_id'] ?? null;
+            <form method="post">
+                Nombre:
+                <input type="text" name="nombre" required><br><br>
 
-            /* =====================================================
-            LISTAR COMPAÑEROS (USA matriculado + alumno + usuario)
-            ===================================================== */
-            if ($accion === 'listara') {
+                Descripción:
+                <input type="text" name="descripcion" required><br><br>
 
-                $grupo_id = 1; // solo lectura, NO cambia BD
-                $res = $objAlumno->Listar_alumnos($grupo_id);
+                <button type="submit" name="guardar" class="btn-regresar">
+                    Guardar
+                </button>
+            </form>
 
-                echo "<h2>Compañeros de clase</h2>";
+            <form method="get">
+                <input type="hidden" name="opcion" value="listar">
+                <button type="submit" class="btn-regresar">
+                    Regresar
+                </button>
+            </form>
+        <?php
+        }
 
-                if ($res && $res->num_rows > 0) {
-                    echo "<table class='tabla-alumno'>
-                            <thead>
-                                <tr>
-                                    <th>ID Alumno</th>
-                                    <th>Nombre</th>
-                                    <th>Email</th>
-                                </tr>
-                            </thead>";
+        /* ================== MODIFICAR ================== */
+        if (isset($_GET['opcion']) && $_GET['opcion'] == "modificar") {
 
-                    while ($fila = $res->fetch_assoc()) {
-                        echo "<tr>
-                                <td>{$fila['alumno_id']}</td>
-                                <td>{$fila['nombre']}</td>
-                                <td>{$fila['email']}</td>
-                            </tr>";
-                    }
-                    echo "</table>";
-                } else {
-                    echo "<p>No hay compañeros.</p>";
-                }
+            $id = $_GET['id'];
+            $resultado = $asignatura->obtenerAsignaturaPorId($id);
+            $fila = $resultado->fetch_assoc();
+        ?>
+            <h2>Modificar asignatura</h2>
+
+            <form method="post">
+                <input type="hidden" name="id" value="<?php echo $fila['id']; ?>">
+
+                Nombre:
+                <input type="text" name="nombre"
+                       value="<?php echo $fila['nombre']; ?>" required><br><br>
+
+                Descripción:
+                <input type="text" name="descripcion"
+                       value="<?php echo $fila['descripcion']; ?>" required><br><br>
+
+                <button type="submit" name="actualizar" class="btn-regresar">
+                    Actualizar asignatura
+                </button>
+            </form>
+
+            <form method="post">
+                <button type="submit" name="Cancelar" class="btn-regresar">
+                    Cancelar
+                </button>
+            </form>
+        <?php
+        }
+
+        /* ================== LISTAR ================== */
+        if(isset($_GET['opcion']) && $_GET['opcion'] == "listar"){
+
+            $resultado = $asignatura->listarAsignatura();
+
+            echo "<h2>Asignaturas Registradas</h2>";
+
+            echo "
+            <form method='get'>
+                <input type='hidden' name='opcion' value='alta'>
+                <button type='submit' class='btn-regresar'>
+                    Nueva asignatura
+                </button>
+            </form><br>";
+
+            echo "<table class='tabla-alumno'>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>";
+
+            while($fila = $resultado->fetch_assoc()){
+                echo "<tr>
+                        <td>{$fila['id']}</td>
+                        <td>{$fila['nombre']}</td>
+                        <td>{$fila['descripcion']}</td>
+                        <td>
+                            <form method='post' style='display:inline;'>
+                                <input type='hidden' name='id' value='{$fila['id']}'>
+                                <button type='submit' name='eliminar'
+                                        class='btn-regresar'
+                                        style='background:#e74c3c'>
+                                        Eliminar
+                                </button>
+                            </form>
+
+                            <form method='get' style='display:inline;'>
+                                <input type='hidden' name='opcion' value='modificar'>
+                                <input type='hidden' name='id' value='{$fila['id']}'>
+                                <button type='submit'
+                                        class='btn-regresar'
+                                        style='background:#2ecc71'>
+                                        Modificar
+                                </button>
+                            </form>
+                        </td>
+                      </tr>";
             }
+            echo "</table>";
+        }
 
-            /* =====================================================
-            LISTAR PROFESORES (MISMA BD)
-            ===================================================== */
-            elseif ($accion === 'listarp') {
+        /* ================== ACCIONES ================== */
+        if(isset($_POST['guardar'])){
+            echo $asignatura->altaAsignatura($_POST['nombre'], $_POST['descripcion'])
+                ? "Asignatura guardada"
+                : "No se pudo guardar";
+        }
 
-                $res = $objAlumno->Listar_profesores($alumno_id);
+        if(isset($_POST['eliminar'])){
+            echo $asignatura->bajaAsignatura($_POST['id'])
+                ? "Asignatura eliminada"
+                : "No se pudo eliminar";
+        }
 
-                echo "<h2>Tus profesores</h2>";
+        if(isset($_POST['actualizar'])){
+            echo $asignatura->modificarAsignatura(
+                $_POST['id'],
+                $_POST['nombre'],
+                $_POST['descripcion']
+            ) ? "Asignatura actualizada" : "No se pudo actualizar";
+        }
+        ?>
+        </div>
 
-                if ($res && $res->num_rows > 0) {
-                    echo "<table class='tabla-alumno'>
-                            <thead>
-                                <tr>
-                                    <th>Profesor</th>
-                                    <th>Especialidad</th>
-                                    <th>Asignatura</th>
-                                </tr>
-                            </thead>";
+    </main>
+</div>
 
-                    while ($fila = $res->fetch_assoc()) {
-                        echo "<tr>
-                                <td>{$fila['nombre']}</td>
-                                <td>{$fila['especialidad']}</td>
-                                <td>{$fila['asignatura']}</td>
-                            </tr>";
-                    }
-                    echo "</table>";
-                } else {
-                    echo "<p>No se encontraron profesores.</p>";
-                }
-            }
-
-            /* =====================================================
-            LISTAR ASIGNATURAS + BOTÓN
-            ===================================================== */
-            elseif ($accion === 'vercalificaciones' && !$grupo_id) {
-
-                $res = $objAlumno->setCalificacion($alumno_id);
-
-                echo "<h2>Mis asignaturas</h2>";
-
-                if ($res && $res->num_rows > 0) {
-                    echo "<table class='tabla-alumno'>
-                            <thead>
-                                <tr>
-                                    <th>Asignatura</th>
-                                    <th>Acción</th>
-                                </tr>
-                            </thead>";
-                            
-
-                    while ($fila = $res->fetch_assoc()) {
-                        echo "<tr>
-                                <td>{$fila['asignatura']}</td>
-                                <td>
-                                    <a class='btn'
-                                    href='?accion=vercalificaciones&grupo_id={$fila['grupo_id']}'>
-                                    Ver calificaciones
-                                    </a>
-                                </td>
-                            </tr>";
-                    }
-                    echo "</table>";
-                } else {
-                    echo "<p>No hay asignaturas.</p>";
-                }
-            }
-
-            /* =====================================================
-            MOSTRAR CALIFICACIONES (FINAL DEL PANEL)
-            ===================================================== */
-            elseif ($accion === 'vercalificaciones' && $grupo_id) {
-
-                $res = $objAlumno->verCalificacion($alumno_id, $grupo_id);
-
-                echo "<h2>Detalle de calificaciones</h2>";
-
-                if ($res && $res->num_rows > 0) {
-                    echo "<table class='tabla-alumno'>
-                            <thead>
-                            <tr>
-                                <th>Asignatura</th>
-                                <th>Parcial 1</th>
-                                <th>Parcial 2</th>
-                                <th>Parcial 3</th>
-                                <th>Promedio Final</th>
-                            </tr>
-                            </thead>";
-
-                    while ($fila = $res->fetch_assoc()) {
-                        echo "<tr>
-                                <td>{$fila['asignatura']}</td>
-                                <td>{$fila['calificacion_1']}</td>
-                                <td>{$fila['calificacion_2']}</td>
-                                <td>{$fila['calificacion_3']}</td>
-                                <td><strong>{$fila['promedio_final']}</strong></td>
-                            </tr>";
-                    }
-                    echo "</table>";
-
-                    echo "<input type='hidden' name='accion' value='vercalificaciones'>
-                        <button type='submit' class='btn'>Volver</button>";
-                } else {
-                    echo "<p>No hay calificaciones.</p>";
-                }
-            }
-
-            /* =====================================================
-            PANEL INICIAL
-            ===================================================== */
-            else {
-                echo "<h3>Seleccione una opción del menú</h3>";
-            }
-            ?>
-
-            </div>
-        </main>
-    </div>
-
-    </body>
+</body>
 </html>
