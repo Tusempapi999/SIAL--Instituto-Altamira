@@ -30,8 +30,8 @@ body {
 <div class="login-container">
     <div class="login-card">
 
-        <h2>Welcome back</h2>
-        <p class="subtitle">Please sign in to continue</p>
+        <h2>Bienvenido</h2>
+        <p class="subtitle">Para continuar ingrese usuario y contraseña</p>
 
         <!-- 🔴 NOTIFICACIÓN DE ERROR -->
         <?php if (isset($_GET['error'])) { ?>
@@ -57,7 +57,7 @@ body {
 
         <br>
 
-        <a href="so.php">
+        <a href="Index.php">
             <button type="button">Regresar</button>
         </a>
 

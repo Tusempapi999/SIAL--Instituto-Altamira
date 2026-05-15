@@ -6,18 +6,16 @@
     $objProfesor = new profesor();
 
     if (isset($_POST['guardar'])) {
-    // Estos IDs deben ser los de las tablas 'alumno' y 'grupo', no de 'usuario'
-    $alumno_id = $_POST['alumno_id']; 
-    $grupo_id = $_POST['grupo_id'];
-    
-    // Convertimos a float para asegurar que la base de datos lo acepte (ej: 8.5)
-    if ($_POST['n1'] !== '') $objProfesor->IngresarCalificacion($alumno_id, $grupo_id, floatval($_POST['n1']), 1);
-    if ($_POST['n2'] !== '') $objProfesor->IngresarCalificacion($alumno_id, $grupo_id, floatval($_POST['n2']), 2);
-    if ($_POST['n3'] !== '') $objProfesor->IngresarCalificacion($alumno_id, $grupo_id, floatval($_POST['n3']), 3);
+        $alumno_id = $_POST['alumno_id']; 
+        $grupo_id = $_POST['grupo_id'];
+        
+        if ($_POST['n1'] !== '') $objProfesor->IngresarCalificacion($alumno_id, $grupo_id, floatval($_POST['n1']), 1);
+        if ($_POST['n2'] !== '') $objProfesor->IngresarCalificacion($alumno_id, $grupo_id, floatval($_POST['n2']), 2);
+        if ($_POST['n3'] !== '') $objProfesor->IngresarCalificacion($alumno_id, $grupo_id, floatval($_POST['n3']), 3);
 
-    header("Location: panelProfesor.php?accion=listarccalificacion&alumno_id=" . $alumno_id);
-    exit();
-}
+        header("Location: panelProfesor.php?accion=listarccalificacion&alumno_id=" . $alumno_id . "&msj=ok");
+        exit();
+    }
 
     $grupos = $objProfesor->Listar_mis_grupos($id_profe);
 ?>
@@ -78,7 +76,7 @@
 
                 if ($accion == 'listara' && $grupo_id) {
                     $res = $objProfesor->Listar_alumnos($grupo_id);
-                    echo "<h2>Alumnos del Grupo</h2><table class='tabla-alumno'><thead><tr><th>Nombre</th><th>Acciones</th></tr></thead><tbody>";
+                    echo "<h2>Lista de Alumnos de la clase</h2><table class='tabla-alumno'><thead><tr><th>Nombre</th><th>Acciones</th></tr></thead><tbody>";
                     while ($fila = $res->fetch_assoc()) {
                         echo "<tr><td>{$fila['nombre']}</td><td>
                                 <a href='?accion=listarccalificacion&alumno_id={$fila['id']}' class='btn-regresar' style='background:#2ecc71'>Ver Notas</a>
@@ -91,68 +89,73 @@
                 if ($accion == 'agregarcalificacion' && $id_alumno_url) {
                     $g_id = $_GET['grupo_id'];
                     $resultado_nota = $objProfesor->Listar_notas_por_profesor($id_alumno_url, $id_profe);
-                    $n1 = $n2 = $n3 = "";
+                    
+                    $n1 = $n2 = $n3 = "0.0";
 
                     if ($resultado_nota && $resultado_nota->num_rows > 0) {
                         $row = $resultado_nota->fetch_assoc();
-                        // Asignamos las notas actuales
                         $n1 = $row['calificacion_1'];
                         $n2 = $row['calificacion_2'];
                         $n3 = $row['calificacion_3'];
                     }
 
-                    // Creamos variables para bloquear (si la nota es mayor a 0, se bloquea)
-                    $bloqueo1 = ($n1 > 0) ? "readonly style='background-color: #e9e9e9;'" : "";
-                    $bloqueo2 = ($n2 > 0) ? "readonly style='background-color: #e9e9e9;'" : "";
-                    $bloqueo3 = ($n3 > 0) ? "readonly style='background-color: #e9e9e9;'" : "";
+                    // Función auxiliar para determinar si un campo debe estar bloqueado
+                    function campoBloqueado($valor) {
+                        return (floatval($valor) > 0) ? "readonly style='background-color: #eee;'" : "";
+                    }
 
-                    echo "<h2>Ingresar Calificación</h2>
-                        <form action='panelProfesor.php' method='POST' class='form-calificar'>
+                    echo "<h2>Ingresar / Modificar Calificación</h2>
+                        <form action='panelProfesor.php' method='POST' class='form-calificar' id='formNotas'>
                             <input type='hidden' name='alumno_id' value='$id_alumno_url'>
                             <input type='hidden' name='grupo_id' value='$g_id'>
                             
                             <label>Parcial 1:</label>
-                            <input type='number' name='n1' step='0.1' value='$n1' $bloqueo1><br>
+                            <input type='number' name='n1' id='n1' step='0.1' min='0' max='10' value='$n1' ".campoBloqueado($n1)."><br>
                             
                             <label>Parcial 2:</label>
-                            <input type='number' name='n2' step='0.1' value='$n2' $bloqueo2><br>
+                            <input type='number' name='n2' id='n2' step='0.1' min='0' max='10' value='$n2' ".campoBloqueado($n2)."><br>
                             
                             <label>Parcial 3:</label>
-                            <input type='number' name='n3' step='0.1' value='$n3' $bloqueo3><br>
-                            
-                            <button type='submit' name='guardar' class='btn-regresar'>Guardar Notas</button>
-                            <a href='?accion=listara&grupo_id=$g_id'>Cancelar</a>
-                        </form>";
+                            <input type='number' name='n3' id='n3' step='0.1' min='0' max='10' value='$n3' ".campoBloqueado($n3)."><br>
+
+                            <div style='margin-top: 20px;'>
+                                <button type='submit' name='guardar' class='btn-regresar'>Guardar Notas</button>
+                                <button type='button' onclick='habilitarEdicion()' class='btn-regresar' style='background:#f39c12; margin-left:10px;'>Modificar Todo</button>
+                                <a href='?accion=listara&grupo_id=$g_id' style='margin-left:10px;'>Cancelar</a>
+                            </div>
+                        </form>
+
+                        <script>
+                            function habilitarEdicion() {
+                                const campos = ['n1', 'n2', 'n3'];
+                                campos.forEach(id => {
+                                    const el = document.getElementById(id);
+                                    el.removeAttribute('readonly');
+                                    el.style.backgroundColor = '#fff';
+                                    el.style.border = '2px solid #f39c12';
+                                });
+                                document.getElementById('n1').focus();
+                            }
+                        </script>";
                 }
 
-                                // CASO 3: VER CALIFICACIONES
                 if ($accion == 'listarccalificacion') {
+                    if (isset($_GET['msj'])) echo "<p style='color:green; font-weight:bold;'>¡Cambios guardados!</p>";
+
                     if ($id_alumno_url) {
                         $resultado = $objProfesor->Listar_notas_por_profesor($id_alumno_url, $id_profe);
-                        echo "<h2>Notas de mi Asignatura - Alumno Seleccionado</h2>";
+                        echo "<h2>Notas del Alumno</h2>";
                     } else {
                         $resultado = $objProfesor->Listar_todas_mis_notas($id_profe); 
-                        echo "<h2>Reporte General de Calificaciones</h2>";
+                        echo "<h2>Reporte General</h2>";
                     }
 
                     if ($resultado && $resultado->num_rows > 0) {
                         echo "<table class='tabla-alumno'>
-                                <thead>
-                                    <tr>
-                                        <th>Alumno</th>
-                                        <th>Asignatura</th>
-                                        <th>P1</th>
-                                        <th>P2</th>
-                                        <th>P3</th>
-                                        <th>Promedio</th>
-                                    </tr>
-                                </thead>
+                                <thead><tr><th>Alumno</th><th>Asignatura</th><th>P1</th><th>P2</th><th>P3</th><th>Promedio</th></tr></thead>
                                 <tbody>";
                         while ($datos = $resultado->fetch_assoc()) {
-                            // CORRECCIÓN: Usamos 'nombre_alumno' si viene de la lista general
-                            // o 'nombre' si viene de la lista individual.
                             $nombre_mostrar = isset($datos['nombre_alumno']) ? $datos['nombre_alumno'] : $datos['nombre'];
-                            
                             echo "<tr>
                                     <td>{$nombre_mostrar}</td>
                                     <td>{$datos['asignatura']}</td>
@@ -164,7 +167,7 @@
                         }
                         echo "</tbody></table>";
                     } else {
-                        echo "<p>No hay notas registradas para tus grupos todavía.</p>";
+                        echo "<p>No hay registros.</p>";
                     }
                 }
              ?> 

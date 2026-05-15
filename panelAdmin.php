@@ -16,7 +16,7 @@
             Colegio<br><span>Nuevo Futuro</span>
             <br>
         </div>
-            <nav class="menu-lateral">
+        <nav class="menu-lateral">
                 __________________________________
                 <!-- Enlace para dar de alta una asignatura (envía opcion=alta por GET) -->
                 <a href="?opcion=alta">Alta asignatura</a>
@@ -35,6 +35,9 @@
                 <!-- Enlace para listar todas las asignaturas -->
                 <a href="?opcion=listar">Listar asignaturas</a>
                 __________________________________
+
+                <a href="?opcion=matricular">Matricular alumno</a>
+                __________________________________
            
         </nav>
     </aside>
@@ -49,7 +52,7 @@
 
             <!-- PERFIL -->
             <div class="perfil">
-                <span class="nombre">---</span>
+                <span class="nombre">Administrador</span>
                 <div class="circulo"></div>
 
                 <!-- MENÚ DESPLEGABLE -->
@@ -57,8 +60,6 @@
                     <div class="notificaciones">
                         Notificaciones
                     </div>        
-                    <a href="#">Configuración</a>
-                    <a href="#">Ayuda</a>
                     <a href="inicio.php" class="salir">Finalizar sesión</a>
                 </div>
     
@@ -248,6 +249,47 @@
                 echo "Asignatura actualizada";
             }else{ // Si hubo un error al actualizar mostrar mensaje
                 echo "No se pudo actualizar";
+            }
+        }
+
+        if(isset($_GET['opcion']) && $_GET['opcion'] == "matricular") {
+            // Título del formulario de matriculación
+            echo "<h2>Matricular alumno en un grupo</h2>";
+
+            // Formulario para matricular alumno
+            echo "<form method='post'>";
+
+            // Campo para ingresar ID del alumno
+            echo "Matricula del alumno: <input type='text' name='alumno_id' required><br><br>";
+
+            // Campo para ingresar ID del grupo
+            echo "ID del grupo: <input type='text' name='grupo_id' required><br><br>";
+
+            // Botón para enviar datos al servidor
+            echo "<input type='submit' name='matricular' value='Matricular'>";
+            echo "</form>";
+        }
+
+        if(isset($_POST['matricular'])) {
+            
+            include('clases/ClaseAdmin.php');
+
+            $admin = new admin();
+            
+            // Captura ID del alumno
+            $alumno_id = $_POST['alumno_id'];
+
+            // Captura ID del grupo
+            $grupo_id = $_POST['grupo_id'];
+
+            // Ejecuta la matriculación del alumno en el grupo
+            $resultado = $admin->matricula_alumno($alumno_id, $grupo_id);
+
+            // Mensaje según resultado
+            if($resultado){
+                echo "Alumno matriculado correctamente";
+            }else{
+                echo "No se pudo matricular al alumno";
             }
         }
         ?>

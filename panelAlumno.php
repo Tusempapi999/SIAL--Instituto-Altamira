@@ -35,7 +35,7 @@
 
             <!-- PERFIL -->
             <div class="perfil">
-                <span class="nombre">---</span>
+                <span class="nombre">Alumnos</span>
                 <div class="circulo"></div>
 
                 <!-- MENÚ DESPLEGABLE -->
@@ -43,8 +43,6 @@
                     <div class="notificaciones">
                         Notificaciones
                     </div>        
-                    <a href="#">Configuración</a>
-                    <a href="#">Ayuda</a>
                     <a href="inicio.php" class="salir">Finalizar sesión</a>
                 </div>
             </div>
