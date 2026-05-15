@@ -3,233 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <title>Panel Administrador</title>
-    <link rel="stylesheet" href="visual_maestro.css">
-
+    <link rel="stylesheet" href="visual_Admin.css">
 </head>
 <body>
 
 <div class="contenedor">
 
-    <!-- Barra lateral -->
     <aside class="sidebar">
         <div class="logo">
             Colegio<br><span>Nuevo Futuro</span>
-            <br>
         </div>
         <nav class="menu-lateral">
-                __________________________________
-                <!-- Enlace para dar de alta una asignatura (envía opcion=alta por GET) -->
-                <a href="?opcion=alta">Alta asignatura</a>
 
-                
-                __________________________________
-                <!-- Enlace para eliminar una asignatura -->
-                <a href="?opcion=baja">Baja asignatura</a>
-        
-                __________________________________
-                <!-- Enlace para modificar una asignatura -->
-
-                <a href="?opcion=modificar">Modificar asignatura</a>
-
-                __________________________________
-                <!-- Enlace para listar todas las asignaturas -->
-                <a href="?opcion=listar">Listar asignaturas</a>
-                __________________________________
-
-                <a href="?opcion=matricular">Matricular alumno</a>
-                __________________________________
-            
+            <hr>
+            <a href="?opcion=listar">Listar asignaturas</a>
+            <hr>
+            <a href="?opcion=matricular">Matricular alumno</a>
+            <hr>
         </nav>
     </aside>
 
-    <!-- CONTENIDO PRINCIPAL -->
     <main class="contenido">
 
-        <!-- BARRA SUPERIOR -->
         <header class="barra-superior">
+            <h2>Bienvenido al panel del Administrador</h2>
 
-            <span><h2>Bienvenido al panel del Administrador</h2></span>
-
-            <!-- PERFIL -->
             <div class="perfil">
                 <span class="nombre">Administrador</span>
                 <div class="circulo"></div>
-
-                <!-- MENÚ DESPLEGABLE -->
                 <div class="menu">
-                    <div class="notificaciones">
-                        Notificaciones
-                    </div>        
+                    <div class="notificaciones">Opciones</div>
                     <a href="inicio.php" class="salir">Finalizar sesión</a>
                 </div>
-    
             </div>
-
         </header>
 
-        <!-- PANEL VACÍO -->
         <div class="panel-vacio">
-            <?php
-            // Incluye el archivo donde está la clase con operaciones CRUD
-            include('classes/ClaseAsignaturas.php');
+        <?php
+        include('clases/ClaseAsignaturas.php');
+        $asignatura = new Asignatura();
 
-            // Crea un objeto para poder usar los métodos de la clase Asignatura
-            $asignatura = new Asignatura();
-
-            // Si se selecciona la opción "alta"
+        /* ========= ALTA DE ASIGNATURA ========= */
         if (isset($_GET['opcion']) && $_GET['opcion'] == "alta") {
         ?>
+            <div class="formulario-estilo-imagen">
+                <h2>Registrar una nueva asignatura</h2>
+                <form method="post">
+                    <div class="form-group">
+                    <div class="form-group">
+                        <label>Nombre de la asignatura</label>
+                        <input type="text" name="nombre" placeholder="Ej. Matemáticas" required>
+                    </div>
 
-            <!-- Título del formulario de alta -->
-            <h2>Registrar una nueva asignatura</h2>
-
-            <!-- Formulario para registrar asignatura -->
-            <form method="post">
-
-                Nombre:
-                <!-- Campo para ingresar el nombre -->
-                <input type="text" name="nombre" required><br><br>
-
-                Descripción:
-                <!-- Campo para ingresar la descripción -->
-                <input type="text" name="descripcion" required><br><br>
-
-                <!-- Botón para enviar datos al servidor -->
-                <input type="submit" name="guardar" value="Guardar">
-            </form>
-
-        <?php
-        }
-
-        // Si se selecciona la opción "baja"
-        if (isset($_GET['opcion']) && $_GET['opcion'] == "baja") {
-        ?>
-
-            <!-- Título del formulario de eliminación -->
-            <h2>Eliminar asignatura</h2>
-
-            <!-- Formulario para eliminar por ID -->
-            <form method="post">
-
-                ID de la asignatura:
-                <!-- Campo para capturar ID -->
-                <input type="text" name="id" required><br><br>
-
-                <!-- Botón de eliminación -->
-                <input type="submit" name="eliminar" value="Eliminar">
-            </form>
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <input type="text" name="descripcion" placeholder="Ej. Álgebra y geometría básica" required>
+                    </div>
+                    <div class="acciones-form">
+                        <input type="submit" name="guardar" class="btn-accion btn-regresar" value="Guardar">
+                        <a href="?opcion=listar" class="btn-accion btn-regresar">Regresar</a>
+                    </div>
+                </form>
+            </div>
+        <?php } ?>
 
         <?php
-        }
-
-        // Si se selecciona la opción "modificar"
+        /* ========= MODIFICAR ASIGNATURA (ESTILO IMAGEN) ========= */
         if (isset($_GET['opcion']) && $_GET['opcion'] == "modificar") {
+            $id = $_GET['id'];
+            $resultado = $asignatura->obtenerAsignaturaPorId($id);
+            $fila = $resultado->fetch_assoc();
         ?>
+            <div class="formulario-estilo-imagen">
+                <h2>Ingresar / Modificar Calificación</h2>
 
-            <!-- Título del formulario de modificación -->
-            <h2>Modificar asignatura</h2>
+                <form method="post">
+                    <input type="hidden" name="id" value="<?php echo $fila['id']; ?>">
 
-            <!-- Formulario para actualizar datos -->
-            <form method="post">
+                    <div class="form-group">
+        <label>Nombre de la asignatura</label>
+    <input type="text" name="nombre" value="<?php echo $fila['nombre']; ?>" required>
+</div>
 
-                ID:
-                <!-- ID del registro a modificar -->
-                <input type="text" name="id" required><br><br>
+<div class="form-group">
+    <label>Descripción</label>
+    <input type="text" name="descripcion" value="<?php echo $fila['descripcion']; ?>" required>
+</div>
 
-                Nuevo nombre:
-                <!-- Nuevo nombre -->
-                <input type="text" name="nombre"><br><br>
-
-                Nueva descripción:
-                <!-- Nueva descripción -->
-                <input type="text" name="descripcion"><br><br>
-
-                <!-- Botón para actualizar -->
-                <input type="submit" name="actualizar" value="Actualizar asignatura">
-            </form>
+                    <div class="acciones-form">
+                        <input type="submit" name="actualizar" value="Actualizar asignatura" class="btn-accion btn-regresar ">
+                        <a href="?opcion=listar" class="btn-accion btn-regresar">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        <?php } ?>
 
         <?php
-        }
-
-
-        // Si se selecciona la opción "listar"
+        /* ========= LISTAR ASIGNATURAS ========= */
         if(isset($_GET['opcion']) && $_GET['opcion'] == "listar"){
-
-            // Ejecuta consulta para obtener todas las asignaturas
             $resultado = $asignatura->listarAsignatura();
-
-            // Título de la sección
             echo "<h2>Asignaturas Registradas</h2>";
-            echo "<br>";
-            // Inicio de la tabla HTML
-            echo "<table border='1'>";
+            echo "<a href='?opcion=alta' class='btn-regresar'>Nueva asignatura</a><br><br>";
+            echo "<table class='tabla-alumno'>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>";
 
-            // Encabezados de la tabla
-            echo "<tr>
-                    <th>ID</th> <!-- Encabezado para ID -->
-                    <th>Nombre</th> <!-- Encabezado para nombre -->
-                    <th>Descripción</th> <!-- Encabezado para descripción -->
-                </tr>";
-
-            // Recorre cada fila obtenida de la base de datos
             while($fila = $resultado->fetch_assoc()){
-
-                echo "<tr>"; // Inicio de una nueva fila en la tabla
-
-                // Muestra ID
-                echo "<td>".$fila['id']."</td>"; 
-
-                // Muestra nombre
-                echo "<td>".$fila['nombre']."</td>"; 
-
-                // Muestra descripción
-                echo "<td>".$fila['descripcion']."</td>";
-
-                echo "</tr>";
+                echo "<tr>
+                        <td>{$fila['id']}</td>
+                        <td>{$fila['nombre']}</td>
+                        <td>{$fila['descripcion']}</td>
+                        <td>
+                            <form method='post' style='display:inline;'>
+                                <input type='hidden' name='id' value='{$fila['id']}'>
+                                <button type='submit' name='eliminar' class='btn-regresar' style='background:#e74c3c'>Eliminar</button>
+                            </form>
+                            <a href='?opcion=modificar&id={$fila['id']}' class='btn-regresar' style='background:#2ecc71'>Modificar</a>
+                        </td>
+                    </tr>";
             }
-
-            // Cierre de tabla
             echo "</table>";
         }
 
-        // Si se presiona el botón "guardar"
+        /* Procesos Logicos */
         if(isset($_POST['guardar'])){
-
-            // Captura nombre del formulario
-            $nombre = $_POST['nombre'];
-
-            // Captura descripción del formulario
-            $descripcion = $_POST['descripcion'];
-
-            // Llama método para insertar en BD
-            $resultado = $asignatura->altaAsignatura($nombre,$descripcion);
-
-            // Verifica resultado de la operación
-            if($resultado){
-                echo "Asignatura guardada";
-            }else{ // Si hubo un error al guardar mostrar mensaje
-                echo "No se pudo guardar";
-            }
+            echo $asignatura->altaAsignatura($_POST['nombre'], $_POST['descripcion']) ? "Asignatura guardada" : "No se pudo guardar";
         }
-
-        // Si se presiona el botón "eliminar"
         if(isset($_POST['eliminar'])){
-
-            // Captura ID a eliminar
-            $id = $_POST['id'];
-
-            // Ejecuta método de eliminación
-            $resultado = $asignatura->bajaAsignatura($id);
-
-            // Mensaje de resultado
-            if($resultado){
-                echo "Asignatura eliminada";
-            }else{ // Si hubo un error al eliminar mostrar mensaje
-                echo "No se pudo eliminar";
-            }
+            echo $asignatura->bajaAsignatura($_POST['id']) ? "Asignatura eliminada" : "No se pudo eliminar";
         }
-
-        // Si se presiona el botón "actualizar"
         if(isset($_POST['actualizar'])){
 
             // Captura ID
@@ -291,15 +199,12 @@
             }else{
                 echo "No se pudo matricular al alumno";
             }
+            
+            echo $asignatura->modificarAsignatura($_POST['id'], $_POST['nombre'], $_POST['descripcion']) ? "Asignatura actualizada" : "No se pudo actualizar";
         }
         ?>
-
         </div>
-
     </main>
-
 </div>
-
 </body>
 </html>
-        
