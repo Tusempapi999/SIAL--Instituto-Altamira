@@ -2,7 +2,7 @@
     session_start();
     $id_profe = isset($_SESSION['id_usuario']) ? $_SESSION['id_usuario'] : 3;
 
-    include('classes/claseProfesores.php');
+    include('clases/claseProfesores.php');
     $objProfesor = new profesor();
 
     if (isset($_POST['guardar'])) {
@@ -54,9 +54,7 @@
                 <span class="nombre">Profesor</span>
                 <div class="circulo"></div>
                 <div class="menu">
-                    <div class="notificaciones">
-                        Opciones
-                    </div>        
+                    <div class="notificaciones">Opciones</div>
                     <a href="inicio.php" class="salir">Finalizar sesión</a>
                 </div>
             </div>
