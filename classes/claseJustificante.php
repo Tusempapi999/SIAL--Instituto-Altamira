@@ -1,5 +1,5 @@
 <?php
-class justificante {
+class justificante  {
     public $sentencia;
     public $conexion;
     private $alumno_id;

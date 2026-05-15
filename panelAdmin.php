@@ -71,7 +71,7 @@
         <div class="panel-vacio">
             <?php
             // Incluye el archivo donde está la clase con operaciones CRUD
-            include('clases/ClaseAsignaturas.php');
+            include('classes/ClaseAsignaturas.php');
 
             // Crea un objeto para poder usar los métodos de la clase Asignatura
             $asignatura = new Asignatura();
