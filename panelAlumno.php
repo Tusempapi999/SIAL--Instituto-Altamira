@@ -55,13 +55,13 @@
             include('classes/claseAlumno.php');
             $objAlumno = new alumno();
 
-            $accion   = $_GET['accion']   ?? '';
+            $accion = $_GET['accion']   ?? '';
             $grupo_id = $_GET['grupo_id'] ?? null;
 
             /* =====================================================
             LISTAR COMPAÑEROS (USA matriculado + alumno + usuario)
             ===================================================== */
-            if ($accion === 'listara') {
+            if ($accion == 'listara') {
 
                 $grupo_id = 1; // solo lectura, NO cambia BD
                 $res = $objAlumno->Listar_alumnos($grupo_id);
@@ -94,7 +94,7 @@
             /* =====================================================
             LISTAR PROFESORES (MISMA BD)
             ===================================================== */
-            elseif ($accion === 'listarp') {
+            elseif ($accion == 'listarp') {
 
                 $res = $objAlumno->Listar_profesores($alumno_id);
 
@@ -126,7 +126,7 @@
             /* =====================================================
             LISTAR ASIGNATURAS + BOTÓN
             ===================================================== */
-            elseif ($accion === 'vercalificaciones' && !$grupo_id) {
+            elseif ($accion == 'vercalificaciones' && !$grupo_id) {
 
                 $res = $objAlumno->setCalificacion($alumno_id);
 
@@ -162,7 +162,7 @@
             /* =====================================================
             MOSTRAR CALIFICACIONES (FINAL DEL PANEL)
             ===================================================== */
-            elseif ($accion === 'vercalificaciones' && $grupo_id) {
+            elseif ($accion == 'vercalificaciones' && $grupo_id) {
 
                 $res = $objAlumno->verCalificacion($alumno_id, $grupo_id);
 

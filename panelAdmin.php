@@ -38,7 +38,7 @@
 
                 <a href="?opcion=matricular">Matricular alumno</a>
                 __________________________________
-           
+            
         </nav>
     </aside>
 
@@ -272,7 +272,7 @@
 
         if(isset($_POST['matricular'])) {
             
-            include('clases/ClaseAdmin.php');
+            include('classes/ClaseAdmin.php');
 
             $admin = new admin();
             
