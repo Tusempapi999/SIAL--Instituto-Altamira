@@ -115,7 +115,7 @@ function cambiarFondo() {
 }
 
 cambiarFondo();
-setInterval(cambiarFondo, 2000);
+setInterval(cambiarFondo, 20000);
 </script>
 
 </body>
