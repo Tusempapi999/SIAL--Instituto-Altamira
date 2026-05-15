@@ -1,36 +1,87 @@
 <?php
-    include('claseUser.php'); // Se incluye el archivo de la clase User
-    class alumno extends user { // Se crea la clase alumno que hereda de la clase User
+include('claseUser.php'); 
 
-        public function Listar_alumnos($grupo_id) { // Función para listar un alumno con una matricula específica 
-            $this->sentencia = "SELECT nombre FROM usuario 
-                                INNER JOIN alumno ON usuario.id = alumno.user_id 
-                                INNER JOIN matriculado ON alumno.id = matriculado.alumno_id 
-                                WHERE matriculado.grupo_id = '$grupo_id'"; 
-                                //Muestrame el nombre de la tabla usuario uniendome
-                                // alumno donde el id de usuario sea igual al user_id de alumno y uniendome la tabla matricula 
-                                // donde el id de alumno sea igual al alumno_id de matriculado y donde el grupo_id de matriculado sea igual a grupo_id
+class profesor extends user { 
 
-            return $this->obtener_sentencia(); // Se ejecuta la sentencia SQL y se devuelve el resultado
-        }
-
-        public function Listar_profesores($alumno_id) { // Función para listar profesores
-            $this->sentencia = "SELECT usuario.nombre, profesor.especialidad, asignatura.nombre AS asignatura 
-                                FROM usuario 
-                                INNER JOIN profesor ON usuario.id = profesor.user_id 
-                                INNER JOIN grupo ON profesor.id = grupo.profesor_id 
-                                INNER JOIN asignatura ON grupo.asignatura_id = asignatura.id 
-                                INNER JOIN matriculado ON grupo.id = matriculado.grupo_id 
-                                WHERE matriculado.alumno_id = '$alumno_id'";
-                                // Muestrame el nombre del usuario, la especialidad del profesor y el nombre de la asignatura
-                                // uniendo la tabla usuario con profesor donde el id de usuario sea igual al user_id de profesor
-                                // uniendo la tabla profesor con grupo donde el id de profesor sea igual al profesor_id de grupo
-                                // uniendo la tabla grupo con asignatura donde el asignatura_id de grupo sea igual al id de asignatura
-                                // uniendo la tabla grupo con matriculado donde el id de grupo sea igual al grupo_id de matriculado
-                                // donde el alumno_id de matriculado sea igual al alumno_id recibido
-
-            return $this->obtener_sentencia(); // Se ejecuta la sentencia SQL y se devuelve el resultado
-        }
-
+    // 1. LISTAR ALUMNOS DE UN GRUPO ESPECÍFICO
+    // Importante: Seleccionamos a.id (ID de tabla alumno) para que el guardado funcione
+    public function Listar_alumnos($grupo_id) { 
+        $this->sentencia = "SELECT a.id, u.nombre, u.email
+                            FROM usuario u
+                            INNER JOIN alumno a ON u.id = a.usuario_id 
+                            INNER JOIN matriculado m ON a.id = m.alumno_id 
+                            WHERE m.grupo_id = '$grupo_id'
+                            ORDER BY u.nombre ASC"; 
+        return $this->obtener_sentencia(); 
     }
+
+    // 2. LISTAR LOS GRUPOS ASIGNADOS AL PROFESOR
+    public function Listar_mis_grupos($usuario_id_profe) {
+        $this->sentencia = "SELECT g.id, asig.nombre AS asignatura, g.grado, g.letra_grupo 
+                            FROM grupo g
+                            INNER JOIN asignatura asig ON g.asignatura_id = asig.id
+                            INNER JOIN profesor p ON g.profesor_id = p.id
+                            WHERE p.usuario_id = '$usuario_id_profe'";
+        return $this->obtener_sentencia();
+    }
+
+    // 3. REPORTE GENERAL DE NOTAS (TODOS LOS ALUMNOS DEL PROFE)
+    public function Listar_todas_mis_notas($usuario_id_profe) {
+        $this->sentencia = "SELECT 
+                                u_alum.nombre AS nombre_alumno, 
+                                asig.nombre AS asignatura, 
+                                m.calificacion_1, 
+                                m.calificacion_2, 
+                                m.calificacion_3, 
+                                m.promedio_final 
+                            FROM matriculado m
+                            INNER JOIN alumno a ON m.alumno_id = a.id
+                            INNER JOIN usuario u_alum ON a.usuario_id = u_alum.id
+                            INNER JOIN grupo g ON m.grupo_id = g.id
+                            INNER JOIN asignatura asig ON g.asignatura_id = asig.id
+                            INNER JOIN profesor p ON g.profesor_id = p.id
+                            WHERE p.usuario_id = '$usuario_id_profe'
+                            ORDER BY u_alum.nombre ASC";
+        return $this->obtener_sentencia();
+    }
+
+    // 4. NOTAS DE UN ALUMNO ESPECÍFICO (PARA EL FORMULARIO DE EDICIÓN)
+    public function Listar_notas_por_profesor($alumno_id, $usuario_id_profe) {
+        $this->sentencia = "SELECT u_alum.nombre, asig.nombre AS asignatura, 
+                                   m.calificacion_1, m.calificacion_2, m.calificacion_3, m.promedio_final
+                            FROM matriculado m
+                            INNER JOIN alumno a ON m.alumno_id = a.id
+                            INNER JOIN usuario u_alum ON a.usuario_id = u_alum.id
+                            INNER JOIN grupo g ON m.grupo_id = g.id
+                            INNER JOIN asignatura asig ON g.asignatura_id = asig.id
+                            INNER JOIN profesor p ON g.profesor_id = p.id
+                            WHERE m.alumno_id = '$alumno_id' 
+                            AND p.usuario_id = '$usuario_id_profe'"; 
+        return $this->obtener_sentencia();
+    }
+
+    // 5. GUARDAR O ACTUALIZAR CALIFICACIÓN
+    public function IngresarCalificacion($alumno_id, $grupo_id, $nota, $parcial) {
+        $columna = "calificacion_" . $parcial;
+        
+        // Aseguramos que la nota sea un número válido para SQL (ej: 8.5)
+        $nota_valida = floatval($nota);
+
+        $this->sentencia = "UPDATE matriculado 
+                            SET $columna = $nota_valida 
+                            WHERE alumno_id = '$alumno_id' 
+                            AND grupo_id = '$grupo_id'";
+
+        return $this->ejecutar_sentencia(); 
+    }
+
+    // 6. LISTAR DIRECTORIO DE PROFESORES
+    public function Listar_todos_los_profesores() {
+        $this->sentencia = "SELECT u.nombre, u.email, p.especialidad 
+                            FROM usuario u 
+                            INNER JOIN profesor p ON u.id = p.usuario_id 
+                            WHERE u.rol = 'profesor'";
+        return $this->obtener_sentencia();
+    }
+}
 ?>
