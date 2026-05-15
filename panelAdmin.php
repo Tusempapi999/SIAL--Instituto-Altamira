@@ -31,7 +31,7 @@
                 <span class="nombre">Administrador</span>
                 <div class="circulo"></div>
                 <div class="menu">
-                    <div class="notificaciones">Notificaciones</div>
+                    <div class="notificaciones">Opciones</div>
                     <a href="inicio.php" class="salir">Finalizar sesión</a>
                 </div>
             </div>

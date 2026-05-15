@@ -1,186 +1,237 @@
+<?php
+    session_start();
+
+    include('clases/claseAlumno.php');
+    $objAlumno = new alumno();
+
+    /* ===============================
+    OBTENER ID DE ALUMNO
+    =============================== */
+    $id_alumno_url = isset($_GET['alumno_id']) ? $_GET['alumno_id'] : null;
+
+    /* usar sesión si no hay GET */
+    if (!$id_alumno_url && isset($_SESSION['id_usuario'])) {
+        $id_alumno_url = $_SESSION['id_usuario'];
+    }
+
+    /* acción */
+    $accion = isset($_GET['accion']) ? $_GET['accion'] : '';
+?>
+
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Panel Administrador</title>
-    <link rel="stylesheet" href="visual_maestro.css">
-</head>
-<body>
+    <head>
+        <meta charset="UTF-8">
+        <title>Panel Alumno</title>
+        <link rel="stylesheet" href="visual_maestro.css">
+    </head>
 
-<div class="contenedor">
+    <body>
 
-    <aside class="sidebar">
-        <div class="logo">
-            Colegio<br><span>Nuevo Futuro</span>
-        </div>
-        <nav class="menu-lateral">
-            __________________________________
-            <a href="?opcion=listar">Listar asignaturas</a>
-            __________________________________
-            <a href="?opcion=matricular">Matricular alumno</a>
-            __________________________________
-        </nav>
-    </aside>
+        <div class="contenedor">
 
-    <main class="contenido">
+            <!-- SIDEBAR -->
+            <aside class="sidebar">
 
-        <header class="barra-superior">
-            <h2>Bienvenido al panel del Administrador</h2>
+                <div class="logo">
+                    SIAL<br><span>Altamira</span>
+                </div>
 
-            <div class="perfil">
-                <span class="nombre">Administrador</span>
+                <nav class="menu-lateral">
+
+                    <h3 style="color:white; padding:10px;">Opciones</h3>
+
+                    <a href="?accion=listara&alumno_id=<?php echo $id_alumno_url; ?>">
+                        Listar alumnos
+                    </a>
+
+                    <a href="?accion=listarp&alumno_id=<?php echo $id_alumno_url; ?>">
+                        Profesores
+                    </a>
+
+                    <hr style="border:1px solid rgba(255,255,255,0.2); margin:10px 0;">
+
+                    <h4 style="color:white; padding:10px;">Califiaciones</h4>
+
+                    <?php
+                    if ($id_alumno_url) {
+
+                        $resultado = $objAlumno->setCalificacion($id_alumno_url);
+
+                        if ($resultado && $resultado->num_rows > 0) {
+
+                            while ($datos = $resultado->fetch_assoc()) {
+
+                                echo "<a href='?accion=vercalificaciones&alumno_id=$id_alumno_url&grupo_id={$datos['grupo_id']}'>
+                                        {$datos['asignatura']}
+                                    </a>";
+                            }
+
+                        } else {
+                            echo "<p style='color:white; padding:10px;'>Sin asignaturas</p>";
+                        }
+
+                    } else {
+                        echo "<p style='color:white; padding:10px;'>Sin sesión</p>";
+                    }
+                    ?>
+
+                </nav>
+            </aside>
+
+            <!-- CONTENIDO -->
+            <main class="contenido">
+
+                <header class="barra-superior">
+                    <h2>Bienvenido al panel del Alumno</h2>
+
+                    <div class="perfil">
+                <span class="nombre">Alumno</span>
                 <div class="circulo"></div>
                 <div class="menu">
-                    <div class="notificaciones">Notificaciones</div>
+                    <div class="notificaciones">Opciones</div>
                     <a href="inicio.php" class="salir">Finalizar sesión</a>
                 </div>
             </div>
-        </header>
+                </header>
 
-        <div class="panel-vacio">
-        <?php
-        include('clases/ClaseAsignaturas.php');
-        $asignatura = new Asignatura();
+                <div class="panel-vacio">
 
-        /* ================== ALTA ================== */
-        if (isset($_GET['opcion']) && $_GET['opcion'] == "alta") {
-        ?>
-            <h2>Registrar una nueva asignatura</h2>
+                <?php
 
-            <form method="post">
-                Nombre:
-                <input type="text" name="nombre" required><br><br>
+                /* ===============================
+                LISTAR ALUMNOS
+                ================================ */
+                if ($accion == 'listara') {
 
-                Descripción:
-                <input type="text" name="descripcion" required><br><br>
+                    $grupo_id = 1;
+                    $res = $objAlumno->Listar_alumnos($grupo_id);
 
-                <button type="submit" name="guardar" class="btn-regresar">
-                    Guardar
-                </button>
-            </form>
+                    if ($res && $res->num_rows > 0) {
 
-            <form method="get">
-                <input type="hidden" name="opcion" value="listar">
-                <button type="submit" class="btn-regresar">
-                    Regresar
-                </button>
-            </form>
-        <?php
-        }
+                        echo "<h2>Compañeros de clase</h2>
+                            <table class='tabla-alumno'>
+                            <thead>
+                                <tr>
+                                    <th>Matrícula</th>
+                                    <th>Nombre</th>
+                                    <th>Email</th>
+                                </tr>
+                            </thead>
+                            <tbody>";
 
-        /* ================== MODIFICAR ================== */
-        if (isset($_GET['opcion']) && $_GET['opcion'] == "modificar") {
+                        while ($fila = $res->fetch_assoc()) {
+                            echo "<tr>
+                                    <td>{$fila['alumno_id']}</td>
+                                    <td>{$fila['nombre']}</td>
+                                    <td>{$fila['email']}</td>
+                                </tr>";
+                        }
 
-            $id = $_GET['id'];
-            $resultado = $asignatura->obtenerAsignaturaPorId($id);
-            $fila = $resultado->fetch_assoc();
-        ?>
-            <h2>Modificar asignatura</h2>
+                        echo "</tbody></table>";
 
-            <form method="post">
-                <input type="hidden" name="id" value="<?php echo $fila['id']; ?>">
+                    } else {
+                        echo "<p>No hay alumnos en este grupo.</p>";
+                    }
+                }
 
-                Nombre:
-                <input type="text" name="nombre"
-                       value="<?php echo $fila['nombre']; ?>" required><br><br>
+                /* ===============================
+                LISTAR PROFESORES
+                ================================ */
+                elseif ($accion == 'listarp') {
 
-                Descripción:
-                <input type="text" name="descripcion"
-                       value="<?php echo $fila['descripcion']; ?>" required><br><br>
+                    if ($id_alumno_url) {
 
-                <button type="submit" name="actualizar" class="btn-regresar">
-                    Actualizar asignatura
-                </button>
-            </form>
+                        $resultado = $objAlumno->Listar_profesores($id_alumno_url);
 
-            <form method="post">
-                <button type="submit" name="Cancelar" class="btn-regresar">
-                    Cancelar
-                </button>
-            </form>
-        <?php
-        }
+                        if ($resultado && $resultado->num_rows > 0) {
 
-        /* ================== LISTAR ================== */
-        if(isset($_GET['opcion']) && $_GET['opcion'] == "listar"){
+                            echo "<h2>Profesores</h2>
+                                <table class='tabla-alumno'>
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Especialidad</th>
+                                        <th>Asignatura</th>
+                                    </tr>
+                                </thead>
+                                <tbody>";
 
-            $resultado = $asignatura->listarAsignatura();
+                            while ($datos = $resultado->fetch_assoc()) {
+                                echo "<tr>
+                                        <td>{$datos['nombre']}</td>
+                                        <td>{$datos['especialidad']}</td>
+                                        <td>{$datos['asignatura']}</td>
+                                    </tr>";
+                            }
 
-            echo "<h2>Asignaturas Registradas</h2>";
+                            echo "</tbody></table>";
 
-            echo "
-            <form method='get'>
-                <input type='hidden' name='opcion' value='alta'>
-                <button type='submit' class='btn-regresar'>
-                    Nueva asignatura
-                </button>
-            </form><br>";
+                        } else {
+                            echo "<p>No hay profesores.</p>";
+                        }
 
-            echo "<table class='tabla-alumno'>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Descripción</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>";
+                    } else {
+                        echo "<p>Falta ID de alumno.</p>";
+                    }
+                }
 
-            while($fila = $resultado->fetch_assoc()){
-                echo "<tr>
-                        <td>{$fila['id']}</td>
-                        <td>{$fila['nombre']}</td>
-                        <td>{$fila['descripcion']}</td>
-                        <td>
-                            <form method='post' style='display:inline;'>
-                                <input type='hidden' name='id' value='{$fila['id']}'>
-                                <button type='submit' name='eliminar'
-                                        class='btn-regresar'
-                                        style='background:#e74c3c'>
-                                        Eliminar
-                                </button>
-                            </form>
+                /* ===============================
+                VER CALIFICACIONES
+                ================================ */
+                elseif ($accion == 'vercalificaciones') {
 
-                            <form method='get' style='display:inline;'>
-                                <input type='hidden' name='opcion' value='modificar'>
-                                <input type='hidden' name='id' value='{$fila['id']}'>
-                                <button type='submit'
-                                        class='btn-regresar'
-                                        style='background:#2ecc71'>
-                                        Modificar
-                                </button>
-                            </form>
-                        </td>
-                      </tr>";
-            }
-            echo "</table>";
-        }
+                    if (isset($_GET['grupo_id']) && $id_alumno_url) {
 
-        /* ================== ACCIONES ================== */
-        if(isset($_POST['guardar'])){
-            echo $asignatura->altaAsignatura($_POST['nombre'], $_POST['descripcion'])
-                ? "Asignatura guardada"
-                : "No se pudo guardar";
-        }
+                        $grupo_id = $_GET['grupo_id'];
+                        $resultado = $objAlumno->verCalificacion($id_alumno_url, $grupo_id);
 
-        if(isset($_POST['eliminar'])){
-            echo $asignatura->bajaAsignatura($_POST['id'])
-                ? "Asignatura eliminada"
-                : "No se pudo eliminar";
-        }
+                        if ($resultado && $resultado->num_rows > 0) {
 
-        if(isset($_POST['actualizar'])){
-            echo $asignatura->modificarAsignatura(
-                $_POST['id'],
-                $_POST['nombre'],
-                $_POST['descripcion']
-            ) ? "Asignatura actualizada" : "No se pudo actualizar";
-        }
-        ?>
+                            echo "<h2>Calificaciones</h2>
+                                <table class='tabla-alumno'>
+                                <thead>
+                                    <tr>
+                                        <th>Asignatura</th>
+                                        <th>P1</th>
+                                        <th>P2</th>
+                                        <th>P3</th>
+                                        <th>Promedio</th>
+                                    </tr>
+                                </thead>
+                                <tbody>";
+
+                            while ($datos = $resultado->fetch_assoc()) {
+                                echo "<tr>
+                                        <td>{$datos['asignatura']}</td>
+                                        <td>{$datos['calificacion_1']}</td>
+                                        <td>{$datos['calificacion_2']}</td>
+                                        <td>{$datos['calificacion_3']}</td>
+                                        <td>{$datos['promedio_final']}</td>
+                                    </tr>";
+                            }
+
+                            echo "</tbody></table>";
+
+                        } else {
+                            echo "<p>No se encontraron calificaciones</p>";
+                        }
+
+                    } else {
+                        echo "<p>Falta información</p>";
+                    }
+                }
+
+                else {
+                    echo "<h3>Seleccione una opción del menú</h3>";
+                }
+
+                ?>
+
+                </div>
+
+            </main>
         </div>
 
-    </main>
-</div>
-
-</body>
+    </body>
 </html>

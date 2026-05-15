@@ -57,7 +57,7 @@ body {
 
         <br>
 
-        <a href="Index.php">
+        <a href="so.php">
             <button type="button">Regresar</button>
         </a>
 
