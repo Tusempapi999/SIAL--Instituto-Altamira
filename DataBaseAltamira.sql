@@ -129,11 +129,23 @@ CREATE TABLE horario (
     FOREIGN KEY (aula_id) REFERENCES aula(id) ON DELETE CASCADE
 );
 
+-- Tabla asistencia
+
+-- id    matriculado_id   fecha      estado   
+
+-- 1          1         2024-09-01   presente       
+-- 2          1         2024-09-02   sin justificar
+-- 3          1         2024-09-03   presente
+
+-- 4          2         2024-09-01   presente
+-- 5          2         2024-09-02   justificado
+-- 6          2         2024-09-03   presente
+
 CREATE TABLE asistencia (
     id INT PRIMARY KEY AUTO_INCREMENT,
     matriculado_id INT NOT NULL, -- Esto ya vincula al alumno con la materia/grupo exacto
     fecha DATE NOT NULL,
-    estado ENUM('presente', 'ausente', 'retardo', 'justificado') NOT NULL DEFAULT 'presente',
+    estado ENUM('presente', 'sin justificar', 'justificado', 'retardo') NOT NULL DEFAULT 'presente',
     FOREIGN KEY (matriculado_id) REFERENCES matriculado(id) ON DELETE CASCADE,
     UNIQUE (matriculado_id, fecha) -- ¡Clave! Esto evita pasarle lista dos veces al mismo alumno el mismo día
 );
@@ -165,7 +177,7 @@ CREATE TABLE asistencia_club (
     id INT PRIMARY KEY AUTO_INCREMENT,
     alumno_id INT NOT NULL, -- Nos vincula directamente con su única inscripción al club
     fecha DATE NOT NULL,
-    estado ENUM('presente', 'ausente', 'retardo', 'justificado') NOT NULL DEFAULT 'presente',
+    estado ENUM('presente', 'sin justificar', 'justificado', 'retardo') NOT NULL DEFAULT 'presente',
     FOREIGN KEY (alumno_id) REFERENCES inscripcion_club(alumno_id) ON DELETE CASCADE,
     UNIQUE (alumno_id, fecha) -- Evita pasar lista dos veces al mismo alumno en la misma fecha
 );
@@ -273,3 +285,22 @@ INSERT INTO matriculado (alumno_id, grupo_id, calificacion_1, calificacion_2, ca
 INSERT INTO matriculado (alumno_id, grupo_id, calificacion_1, calificacion_2, calificacion_3) VALUES 
 (4, 3, 7.5, 7.0, 8.5),
 (4, 4, 9.0, 8.0, 7.0);
+
+-- Tomar asistencia para el "Alumno" (ID 1) en Matemáticas (Grupo 1)
+INSERT INTO asistencia (matriculado_id, fecha, estado) VALUES (1, '2026-05-15', 'sin justificar');
+
+-- Mostrar todas las asistencias, faltas o justificadas
+-- SELECT asistencia.fecha, asistencia.estado FROM asistencia INNER JOIN matriculado ON asistencia.matriculado_id = matriculado.id INNER JOIN grupo ON matriculado.grupo_id = grupo.id WHERE grupo.asignatura_id = 1 AND matriculado.alumno_id = 1;
+
+-- Sentencias listar faltas
+SELECT asistencia.fecha, asistencia.estado FROM asistencia 
+INNER JOIN matriculado ON asistencia.matriculado_id = matriculado.id
+INNER JOIN grupo ON matriculado.grupo_id = grupo.id
+WHERE grupo.asignatura_id = 1 AND matriculado.alumno_id = 1 AND asistencia.estado = 'sin justificar';
+
+
+-- Sentencias contar faltas
+SELECT COUNT(*) as cantidad FROM asistencia 
+INNER JOIN matriculado ON asistencia.matriculado_id = matriculado.id
+INNER JOIN grupo ON matriculado.grupo_id = grupo.id
+WHERE grupo.asignatura_id = 1 AND matriculado.alumno_id = 1 AND asistencia.estado = 'sin justificar' GROUP BY matriculado.alumno_id;

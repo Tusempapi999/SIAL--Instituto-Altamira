@@ -9,51 +9,22 @@
             echo "Inicio de sesión exitoso" . "<br>"; // Se muestra un mensaje de éxito
             while ($datos = $resultado->fetch_assoc()) { // Se recorre el resultado para obtener los datos del usuario
             
-                if ('admin' == $datos['rol']) { // Si la rol es 1 es admin
+                if ('admin' == $datos['rol']) { // Si es admin
                     header("Location: panelAdmin.php");
                     exit;
                     //echo "<a href='panelAdmin.html'>Ir al panel de admin</a>";
                 }
-                if ('alumno' == $datos['rol']) { // Si la rol es 2 es alumno
+                if ('alumno' == $datos['rol']) { // Si  es alumno
                     header("Location: panelAlumno.php");
                     exit;
                     //echo "<a fhref='panelAlumno.html'>Ir al panel de alumno</a>";
                 }
-                if ('profesor' == $datos['rol']) { // Si la rol es 3 es profesor
+                if ('profesor' == $datos['rol']) { // Si es profesor
                     header("Location: panelProfesor.php");
                     exit;
                     //echo "<a href='panelProfesor.html'>Ir al panel de profesor</a>";
                 }
-               
-
             }
-
-            while ($datos = $resultado->fetch_assoc()) { // Se recorre el resultado para obtener los datos del usuario
-                ?>
-                <table>
-                <thead>
-                    <tr>
-                        <th>Matricula</th>
-                        <th>Nombre</th>
-                        <th>Email</th>
-                        <th>Rol</th>
-                        <th>Fecha de nacimiento</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><?php echo $datos['id']; ?></td>
-                        <td><?php echo $datos['nombre']; ?></td>
-                        <td><?php echo $datos['email']; ?></td>
-                        <td><?php echo $datos['rol']; ?></td>
-                        <td><?php echo $datos['fecha_nacimiento']; ?></td>
-                    </tr>
-                </tbody> 
-                </table>
-                <?php
-            }
-        } else {
-           header("Location: inicio.php?error=1");
-            exit;
         }
     }
+?>
