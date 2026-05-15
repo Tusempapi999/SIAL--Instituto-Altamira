@@ -8,7 +8,7 @@
         echo "<h2>Tus asignaturas</h2>";
         echo "<ul>";
         while ($datos = $resultado->fetch_assoc()) { // Recorre el resultado
-            echo "<li><a href='verCalificacion.php?alumno_id=".$alumno_id."&grupo_id=".$datos['grupo_id']."'>".$datos['asignatura']."</a></li>";
+            echo "<li><a href='verFaltasAsistencias.php?alumno_id=".$alumno_id."&grupo_id=".$datos['grupo_id']."'>".$datos['asignatura']."</a></li>";
             // cada asignatura es un link que manda el alumno_id y el grupo_id a verCalificacion.php
         }
         echo "</ul>";
