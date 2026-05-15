@@ -51,7 +51,7 @@
             <div class="panel-vacio">
 
             <?php
-            include('classes/claseAlumno.php');
+            include('clases/claseAlumno.php');
             $objAlumno = new alumno();
 
             $accion   = $_GET['accion']   ?? '';

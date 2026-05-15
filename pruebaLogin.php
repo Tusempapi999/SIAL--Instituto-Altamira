@@ -1,5 +1,5 @@
 <?php
-    include('classes/claseUser.php'); // Se incluye el archivo de la clase User
+    include('clases/claseUser.php'); // Se incluye el archivo de la clase User
     $user = new User(); // Se crea una instancia de la clase User
     if (isset($_POST['matricula']) && isset($_POST['pwd'])) { // Se verifica si se han enviado los datos de matricula y contraseña
         $matricula = $_POST['matricula']; // Se obtiene el valor de la matricula enviada por el formulario

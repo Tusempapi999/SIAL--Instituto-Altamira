@@ -2,7 +2,7 @@
     session_start();
     $id_profe = isset($_SESSION['id_usuario']) ? $_SESSION['id_usuario'] : 3;
 
-    include('classes/claseProfesores.php');
+    include('clases/claseProfesores.php');
     $objProfesor = new profesor();
 
     if (isset($_POST['guardar'])) {

@@ -71,7 +71,7 @@
         <div class="panel-vacio">
             <?php
             // Incluye el archivo donde está la clase con operaciones CRUD
-            include('classes/ClaseAsignaturas.php');
+            include('clases/ClaseAsignaturas.php');
 
             // Crea un objeto para poder usar los métodos de la clase Asignatura
             $asignatura = new Asignatura();
@@ -162,14 +162,17 @@
             echo "<h2>Asignaturas Registradas</h2>";
             echo "<br>";
             // Inicio de la tabla HTML
-            echo "<table border='1'>";
+            echo "<table class='tabla-alumno'>";
 
             // Encabezados de la tabla
-            echo "<tr>
+            echo "
+                <thead>
+                <tr>
                     <th>ID</th> <!-- Encabezado para ID -->
                     <th>Nombre</th> <!-- Encabezado para nombre -->
                     <th>Descripción</th> <!-- Encabezado para descripción -->
-                </tr>";
+                </tr>
+            </thead>";
 
             // Recorre cada fila obtenida de la base de datos
             while($fila = $resultado->fetch_assoc()){
@@ -184,7 +187,13 @@
 
                 // Muestra descripción
                 echo "<td>".$fila['descripcion']."</td>";
-
+                echo "<td>".$fila['descripcion']."
+                <td>
+                                <a href='?opcion=baja' class='btn-regresar' style='background:#2ecc71'>Eliminar</a>
+                                <a href='?opcion=modificar' class='btn-regresar'>Poner Nota</a>
+                            </td></tr>";
+                    
+                   
                 echo "</tr>";
             }
 
