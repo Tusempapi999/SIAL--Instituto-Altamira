@@ -4,9 +4,8 @@ include('claseUser.php');
 class profesor extends user { 
 
     // 1. LISTAR ALUMNOS DE UN GRUPO ESPECÍFICO
-    // Importante: Seleccionamos a.id (ID de tabla alumno) para que el guardado funcione
     public function Listar_alumnos($grupo_id) { 
-        $this->sentencia = "SELECT a.id, u.nombre, u.email
+        $this->sentencia = "SELECT a.id AS alumno_id, u.nombre, u.email
                             FROM usuario u
                             INNER JOIN alumno a ON u.id = a.usuario_id 
                             INNER JOIN matriculado m ON a.id = m.alumno_id 
@@ -25,7 +24,7 @@ class profesor extends user {
         return $this->obtener_sentencia();
     }
 
-    // 3. REPORTE GENERAL DE NOTAS (TODOS LOS ALUMNOS DEL PROFE)
+    // 3. REPORTE GENERAL DE NOTAS
     public function Listar_todas_mis_notas($usuario_id_profe) {
         $this->sentencia = "SELECT 
                                 u_alum.nombre AS nombre_alumno, 
@@ -45,7 +44,7 @@ class profesor extends user {
         return $this->obtener_sentencia();
     }
 
-    // 4. NOTAS DE UN ALUMNO ESPECÍFICO (PARA EL FORMULARIO DE EDICIÓN)
+    // 4. NOTAS DE UN ALUMNO ESPECÍFICO
     public function Listar_notas_por_profesor($alumno_id, $usuario_id_profe) {
         $this->sentencia = "SELECT u_alum.nombre, asig.nombre AS asignatura, 
                                    m.calificacion_1, m.calificacion_2, m.calificacion_3, m.promedio_final
@@ -63,8 +62,6 @@ class profesor extends user {
     // 5. GUARDAR O ACTUALIZAR CALIFICACIÓN
     public function IngresarCalificacion($alumno_id, $grupo_id, $nota, $parcial) {
         $columna = "calificacion_" . $parcial;
-        
-        // Aseguramos que la nota sea un número válido para SQL (ej: 8.5)
         $nota_valida = floatval($nota);
 
         $this->sentencia = "UPDATE matriculado 
@@ -83,18 +80,19 @@ class profesor extends user {
                             WHERE u.rol = 'profesor'";
         return $this->obtener_sentencia();
     }
+
+    // 7. REGISTRAR ASISTENCIA (CORREGIDO: Ahora usa ejecutar_sentencia)
     public function Registrar_asistencia_por_profesor($alumno_id, $usuario_id_profe, $grupo_id, $fecha, $estado) {
-    $this->sentencia = "INSERT INTO asistencia (matriculado_id, fecha, estado)
-                        SELECT m.id, '$fecha', '$estado'
-                        FROM matriculado m
-                        INNER JOIN grupo g ON m.grupo_id = g.id
-                        INNER JOIN profesor p ON g.profesor_id = p.id
-                        WHERE m.alumno_id = '$alumno_id' 
-                        AND g.id = '$grupo_id'
-                        AND p.usuario_id = '$usuario_id_profe'
-                        ON DUPLICATE KEY UPDATE estado = VALUES(estado)"; 
-    // SE CORRIGE AQUÍ: Debe ser ejecutar_sentencia() para operaciones INSERT/UPDATE
-    return $this->ejecutar_sentencia(); 
-}
+        $this->sentencia = "INSERT INTO asistencia (matriculado_id, fecha, estado)
+                            SELECT m.id, '$fecha', '$estado'
+                            FROM matriculado m
+                            INNER JOIN grupo g ON m.grupo_id = g.id
+                            INNER JOIN profesor p ON g.profesor_id = p.id
+                            WHERE m.alumno_id = '$alumno_id' 
+                            AND g.id = '$grupo_id'
+                            AND p.usuario_id = '$usuario_id_profe'
+                            ON DUPLICATE KEY UPDATE estado = VALUES(estado)"; 
+        return $this->ejecutar_sentencia(); 
+    }
 }
 ?>

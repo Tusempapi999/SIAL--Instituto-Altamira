@@ -1,6 +1,5 @@
 <?php
     session_start();
-    // Establecemos la zona horaria para garantizar que la fecha coincida con tu país
     date_default_timezone_set('America/Mexico_City'); 
 
     $id_profe = isset($_SESSION['id_usuario']) ? $_SESSION['id_usuario'] : 3;
@@ -8,7 +7,7 @@
     include('clases/claseProfesores.php');
     $objProfesor = new profesor();
 
-    // ACCIÓN 1: GUARDAR CALIFICACIONES
+    // ACCIÓN POST 1: GUARDAR CALIFICACIONES
     if (isset($_POST['guardar'])) {
         $alumno_id = $_POST['alumno_id']; 
         $grupo_id = $_POST['grupo_id'];
@@ -21,16 +20,20 @@
         exit();
     }
 
-    // ACCIÓN 2: GUARDAR ASISTENCIA (Integrado aquí)
+    // ACCIÓN POST 2: GUARDAR ASISTENCIA COLECTIVA
     if (isset($_POST['guardar_asistencia'])) {
-        $alumno_id = $_POST['alumno_id'];
-        $grupo_id = $_POST['grupo_id'];
-        $estado = $_POST['estado'];
-        $fecha_actual = date('Y-m-d'); // Obtiene de forma automatizada el año-mes-día actual
+        $grupo_id = $_POST['grupo_id_general'];
+        $fecha_actual = date('Y-m-d'); 
 
-        $objProfesor->Registrar_asistencia_por_profesor($alumno_id, $id_profe, $grupo_id, $fecha_actual, $estado);
+        if (isset($_POST['asistencias']) && is_array($_POST['asistencias'])) {
+            foreach ($_POST['asistencias'] as $alumno_id => $datos_asistencia) {
+                $estado = isset($datos_asistencia['estado']) ? $datos_asistencia['estado'] : '';
+                if (!empty($estado)) {
+                    $objProfesor->Registrar_asistencia_por_profesor($alumno_id, $id_profe, $grupo_id, $fecha_actual, $estado);
+                }
+            }
+        }
 
-        // Redirecciona de vuelta a la lista de alumnos del grupo correspondiente con mensaje de éxito
         header("Location: panelProfesor.php?accion=listara&grupo_id=" . $grupo_id . "&msj=asistencia_ok");
         exit();
     }
@@ -84,9 +87,8 @@
                 $grupo_id = isset($_GET['grupo_id']) ? $_GET['grupo_id'] : null;
                 $id_alumno_url = isset($_GET['alumno_id']) ? $_GET['alumno_id'] : null;
 
-                // Mensaje informativo global para el módulo de alumnos
                 if (isset($_GET['msj']) && $_GET['msj'] == 'asistencia_ok') {
-                    echo "<p style='color:green; font-weight:bold; margin-bottom: 15px;'>¡Asistencia registrada con éxito!</p>";
+                    echo "<p style='color:green; font-weight:bold; margin-bottom: 15px;'>¡Asistencia procesada correctamente en la Base de Datos!</p>";
                 }
 
                 if ($accion == 'listarp') {
@@ -101,14 +103,12 @@
                 if ($accion == 'listara' && $grupo_id) {
                     $res = $objProfesor->Listar_alumnos($grupo_id);
                     echo "<h2>Lista de Alumnos de la clase</h2><table class='tabla-alumno'><thead><tr><th>Nombre</th><th>Acciones</th></tr></thead><tbody>";
+                    echo "<a href='?accion=asistencia&grupo_id=$grupo_id' class='btn-regresar' style='background:#3498db; margin-bottom:15px; display:inline-block;'>Tomar Lista de Hoy</a><br><br>";
                     while ($fila = $res->fetch_assoc()) {
                         echo "<tr><td>{$fila['nombre']}</td><td>
-                                <a href='?accion=listarccalificacion&alumno_id={$fila['id']}' class='btn-regresar' style='background:#2ecc71'>Ver Notas</a>
-                                <a href='?accion=agregarcalificacion&alumno_id={$fila['id']}&grupo_id=$grupo_id' class='btn-regresar'>Poner Nota</a>
-                                <a href='?accion=asistencia&alumno_id={$fila['id']}&nombre={$fila['nombre']}&grupo_id=$grupo_id' class='btn-regresar'>
-                                    Asistencia
-                                </a>  
-                                <a href='?accion=asistenciamodificar&alumno_id={$fila['id']}&nombre={$fila['nombre']}&grupo_id=$grupo_id' class='btn-regresar' style='background:#ff9008'>
+                                <a href='?accion=listarccalificacion&alumno_id={$fila['alumno_id']}' class='btn-regresar' style='background:#2ecc71'>Ver Notas</a>
+                                <a href='?accion=agregarcalificacion&alumno_id={$fila['alumno_id']}&grupo_id=$grupo_id' class='btn-regresar'>Poner Nota</a>
+                                <a href='?accion=asistenciamodificar&alumno_id={$fila['alumno_id']}&nombre={$fila['nombre']}&grupo_id=$grupo_id' class='btn-regresar' style='background:#ff9008'>
                                     Modificar Asistencia
                                 </a>                       
                                 </td></tr>";
@@ -152,24 +152,11 @@
                                 <button type='button' onclick='habilitarEdicion()' class='btn-regresar' style='background:#f39c12; margin-left:10px;'>Modificar Todo</button>
                                 <a href='?accion=listara&grupo_id=$g_id' style='margin-left:10px;'>Cancelar</a>
                             </div>
-                        </form>
-
-                        <script>
-                            function habilitarEdicion() {
-                                const campos = ['n1', 'n2', 'n3'];
-                                campos.forEach(id => {
-                                    const el = document.getElementById(id);
-                                    el.removeAttribute('readonly');
-                                    el.style.backgroundColor = '#fff';
-                                    el.style.border = '2px solid #f39c12';
-                                });
-                                document.getElementById('n1').focus();
-                            }
-                        </script>";
+                        </form>";
                 }
 
                 if ($accion == 'listarccalificacion') {
-                    if (isset($_GET['msj']) && $_GET['msj'] == 'ok') echo "<p style='color:green; font-weight:bold;'>¡Cambios guardados!</p>";
+                    if (isset($_GET['msj'])) echo "<p style='color:green; font-weight:bold;'>¡Cambios guardados!</p>";
 
                     if ($id_alumno_url) {
                         $resultado = $objProfesor->Listar_notas_por_profesor($id_alumno_url, $id_profe);
@@ -200,39 +187,71 @@
                     }
                 }
 
-                // VISTA DE ASISTENCIA (Corregida y apuntando al mismo archivo)
+                // VISTA DE ASISTENCIA COLECTIVA (CORREGIDA PARA ID REALES)
                 if ($accion == 'asistencia') {
-                    $alumno_id = isset($_GET['alumno_id']) ? $_GET['alumno_id'] : null;
-                    $nombre = isset($_GET['nombre']) ? $_GET['nombre'] : 'Alumno';
-                    $grupo_id = isset($_GET['grupo_id']) ? $_GET['grupo_id'] : null;
+                    $g_id = isset($_GET['grupo_id']) ? $_GET['grupo_id'] : '';
+                    
+                    // Obtenemos de forma limpia los alumnos inscritos exclusivamente a este grupo
+                    $resultado_alumnos = $objProfesor->Listar_alumnos($g_id); 
 
-                    echo "<h2>Registro de Asistencia</h2>";
+                    echo "<h2>Pase de Lista del Grupo</h2>";
+                    echo "<form action='panelProfesor.php' method='POST'>
+                            <input type='hidden' name='grupo_id_general' value='{$g_id}'>
+                            <table class='tabla-alumno'>
+                                <thead><tr><th>Alumno</th><th>Asistencia de Hoy</th></tr></thead>
+                                <tbody>";
 
-                    if ($alumno_id && $grupo_id) {
-                        echo "<p style='margin-bottom: 15px;'>Alumno: <strong>$nombre</strong></p>";
-                        echo "
-                        <form method='POST' action='panelProfesor.php' class='form-calificar'>
-                            <input type='hidden' name='alumno_id' value='$alumno_id'>
-                            <input type='hidden' name='grupo_id' value='$grupo_id'>
-                            
-                            <div style='margin-bottom: 20px;'>
-                                <label for='estado' style='display: block; margin-bottom: 8px;'>Seleccionar Estado:</label>
-                                <select name='estado' id='estado' style='padding: 8px; width: 100%; max-width: 300px; border-radius: 4px; border: 1px solid #ccc;'>
-                                    <option value='presente'>Presente</option>
-                                    <option value='sin justificar'>Falta</option>
-                                    <option value='retardo'>Retardo</option>
-                                    <option value='justificado'>Justificado</option>
-                                </select>
-                            </div>
-                            
-                            <div style='margin-top: 25px; display: flex; align-items: center;'>
-                                <button type='submit' name='guardar_asistencia' class='btn-regresar' style='border: none; cursor: pointer;'>Guardar Asistencia</button>
-                                <a href='?accion=listara&grupo_id=$grupo_id' class='btn-regresar' style='background: #e74c3c; margin-left: 10px; text-decoration: none; text-align: center;'>Cancelar</a>
-                            </div>
-                        </form>";
+                    if ($resultado_alumnos && $resultado_alumnos->num_rows > 0) {
+                        while ($datos = $resultado_alumnos->fetch_assoc()) {
+                            $id_correcto_alumno = $datos['alumno_id'];
+                            $fecha_hoy = date('Y-m-d');
+                            $asistencia_guardada = "";
+                            $desabilitar = "";
+
+                            // Comprobamos si el alumno tiene un registro guardado el día de hoy
+                            $objProfesor->sentencia = "
+                                SELECT a.estado FROM asistencia a 
+                                INNER JOIN matriculado m ON a.matriculado_id = m.id 
+                                WHERE m.alumno_id = '$id_correcto_alumno' AND m.grupo_id = '$g_id' AND a.fecha = '$fecha_hoy'
+                            ";
+                            $check_asistencia = $objProfesor->obtener_sentencia();
+
+                            if ($check_asistencia && $check_asistencia->num_rows > 0) {
+                                $reg_asistencia = $check_asistencia->fetch_assoc();
+                                $asistencia_guardada = $reg_asistencia['estado']; 
+                                $desabilitar = "disabled style='background-color: #eee; color:#7f8c8d; cursor: not-allowed;'"; 
+                            }
+
+                            echo "<tr>
+                                    <td><strong>{$datos['nombre']}</strong></td>
+                                    <td>";
+                                    
+                            if (!empty($asistencia_guardada)) {
+                                // Dejamos un campo oculto de respaldo si ya se guardó para que mantenga el valor al enviar el POST
+                                echo "<input type='hidden' name='asistencias[{$id_correcto_alumno}][estado]' value='{$asistencia_guardada}'>";
+                                echo "<span style='color:#27ae60; font-weight:bold; margin-right:15px;'>✓ Registrado: " . strtoupper($asistencia_guardada) . "</span>";
+                            }
+
+                            echo "      <select name='asistencias[{$id_correcto_alumno}][estado]' style='padding: 8px; width: 100%; max-width: 250px; border-radius: 4px; border: 1px solid #ccc;' required $desabilitar>
+                                            <option value='' disabled " . ($asistencia_guardada == "" ? "selected" : "") . ">--- Seleccionar ---</option>
+                                            <option value='presente' " . ($asistencia_guardada == "presente" ? "selected" : "") . ">Presente</option>
+                                            <option value='sin justificar' " . ($asistencia_guardada == "sin justificar" ? "selected" : "") . ">Falta</option>
+                                            <option value='retardo' " . ($asistencia_guardada == "retardo" ? "selected" : "") . ">Retardo</option>
+                                        </select>
+                                    </td>
+                                </tr>";
+                        }
                     } else {
-                        echo "<p style='color:red;'>Faltan parámetros necesarios para tomar asistencia.</p>";
+                        echo "<tr><td colspan='2'>No hay alumnos matriculados en este grupo.</td></tr>";
                     }
+                    
+                    echo "</tbody></table>";
+                    echo "
+                        <div style='margin-top: 25px; display: flex; align-items: center;'>
+                            <button type='submit' name='guardar_asistencia' class='btn-regresar' style='border: none; cursor: pointer; background:#2980b9;'>Guardar Asistencia Completa</button>
+                            <a href='?accion=listara&grupo_id=" . $g_id . "' class='btn-regresar' style='background: #e74c3c; margin-left: 10px; text-decoration: none; text-align: center;'>Cancelar</a>
+                        </div>
+                    </form>";
                 }
              ?> 
         </div>
