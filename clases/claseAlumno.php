@@ -83,15 +83,16 @@ class alumno extends user {
     }
 
     // ===== LISTAR ASIGNATURAS PARA EL PANEL DE ASISTENCIA =====
-    public function verFaltasAsistencia($matriculado_id) {
-        $this->sentencia = "
-            SELECT asistencia.fecha, asistencia.estado FROM asistencia 
-                    INNER JOIN matriculado ON asistencia.matriculado_id = matriculado.id
-                    INNER JOIN grupo ON matriculado.grupo_id = grupo.id
-                    WHERE grupo.asignatura_id = '$asignatura_id' AND matriculado.alumno_id = '$alumno_id' AND asistencia.estado = 'sin justificar'
-        ";
-        return $this->obtener_sentencia();
-    }
+    public function verFaltasAsistencia($grupo_id, $alumno_id) {
+    $this->sentencia = "
+                SELECT asistencia.fecha, asistencia.estado 
+                FROM asistencia 
+                INNER JOIN matriculado ON asistencia.matriculado_id = matriculado.id
+                WHERE matriculado.grupo_id = '$grupo_id' 
+                AND matriculado.alumno_id = '$alumno_id'
+    ";
+    return $this->obtener_sentencia();
+}
 
     //CONTAR FALTAS DE ASISTENCIA
     public function contarFaltasAsistencia($matriculado_id) {
