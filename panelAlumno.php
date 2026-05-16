@@ -1,26 +1,3 @@
-<?php
-    session_start();
-
-    include('clases/claseAlumno.php');
-    $objAlumno = new alumno();
-
-    /* ===============================
-    OBTENER ID DE ALUMNO
-    =============================== */
-    $id_alumno_url = isset($_GET['alumno_id']) ? $_GET['alumno_id'] : null;
-
-    $grupo_id = isset($_GET['grupo_id']) ? $_GET['grupo_id'] : null;
-
-    /* usar sesión si no hay GET */
-    if (!$id_alumno_url && isset($_SESSION['id_usuario'])) {
-        $id_alumno_url = $_SESSION['id_usuario'];
-    }
-
-    /* acción */
-    $accion = isset($_GET['accion']) ? $_GET['accion'] : '';
-
-?>
-
 <!DOCTYPE html>
 <html lang="es">
     <head>
@@ -28,219 +5,246 @@
         <title>Panel Alumno</title>
         <link rel="stylesheet" href="visual_maestro.css">
     </head>
-
     <body>
 
-        <div class="contenedor">
+    <div class="contenedor">
 
-            <!-- SIDEBAR -->
-            <aside class="sidebar">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="logo">
+                SIAL<br><span>Altamira</span>
+            </div>
 
-                <div class="logo">
-                    SIAL<br><span>Altamira</span>
-                </div>
+            <?php
+            // SIMULACIÓN (luego va por SESSION)
+            $alumno_id = 1; // ESTE ES alumno.id (NO usuario.id)
+            ?>
 
-                <nav class="menu-lateral">
+            <nav class="menu-lateral">
+                <a href="?accion=listara">Listar compañeros</a>
+                <a href="?accion=listarp">Listar profesores</a>
+                <a href="?accion=faltasasistencias">Faltas y asistencias</a>
+                <a href="?accion=vercalificaciones">Ver calificaciones</a>
+            </nav>
+        </aside>
 
-                    <h3 style="color:white; padding:10px;">Opciones</h3>
-
-                    <a href="?accion=listara&alumno_id=<?php echo $id_alumno_url; ?>">
-                        Listar alumnos
-                    </a>
-
-                    <a href="?accion=listarp&alumno_id=<?php echo $id_alumno_url; ?>">
-                        Profesores
-                    </a>
-
-                    <hr style="border:1px solid rgba(255,255,255,0.2); margin:10px 0;">
-
-                    <h4 style="color:white; padding:10px;">Califiaciones</h4>
-
-                    <?php
-                    if ($id_alumno_url) {
-
-                        $resultado = $objAlumno->setCalificacion($id_alumno_url);
-
-                        if ($resultado && $resultado->num_rows > 0) {
-
-                            while ($datos = $resultado->fetch_assoc()) {
-
-                                echo "<a href='?accion=vercalificaciones&alumno_id=$id_alumno_url&grupo_id={$datos['grupo_id']}'>
-                                        {$datos['asignatura']}
-                                    </a>";
-
-                                echo "<a href='?accion=listara&alumno_id=$id_alumno_url&grupo_id={$datos['grupo_id']}'>
-                                        {$datos['asignatura']}
-                                    </a>";
-                                
-                                echo "<a href='?accion=listarp&alumno_id=$id_alumno_url&grupo_id={$datos['grupo_id']}'>
-                                        {$datos['asignatura']}
-                                    </a>";
-                            }
-
-                        } else {
-                            echo "<p style='color:white; padding:10px;'>Sin asignaturas</p>";
-                        }
-
-                    } else {
-                        echo "<p style='color:white; padding:10px;'>Sin sesión</p>";
-                    }
-                    ?>
-
-                </nav>
-            </aside>
-
-            <!-- CONTENIDO -->
-            <main class="contenido">
-
-                <header class="barra-superior">
-                    <h2>Bienvenido al panel del Alumno</h2>
-
-                    <div class="perfil">
+        <!-- CONTENIDO -->
+        <main class="contenido">
+            <header class="barra-superior">
+                <h2>Panel del Alumno</h2>
+                <div class="perfil">
                 <span class="nombre">Alumno</span>
                 <div class="circulo"></div>
+
+                <!-- MENÚ DESPLEGABLE -->
                 <div class="menu">
-                    <div class="notificaciones">Opciones</div>
+                    <div class="notificaciones">
+                        Opciones
+                    </div>        
                     <a href="inicio.php" class="salir">Finalizar sesión</a>
                 </div>
+    
             </div>
-                </header>
+            </header>
+            
 
-                <div class="panel-vacio">
+            <div class="panel-vacio">
 
-                <?php
+            <?php
+            include('clases/claseAlumno.php');
+            $objAlumno = new alumno();
 
-                /* ===============================
-                LISTAR ALUMNOS
-                ================================ */
-                if ($accion == 'listara') {
-                    
-                    $res = $objAlumno->Listar_alumnos($grupo_id);
+            $accion = $_GET['accion']   ?? '';
+            $grupo_id = $_GET['grupo_id'] ?? null;
 
-                    if ($res && $res->num_rows > 0) {
+            /* =====================================================
+            LISTAR COMPAÑEROS (USA matriculado + alumno + usuario)
+            ===================================================== */
+            if ($accion == 'listara') {
 
-                        echo "<h2>Compañeros de clase</h2>
-                            <table class='tabla-alumno'>
+                $grupo_id = 1; // solo lectura, NO cambia BD
+                $res = $objAlumno->Listar_alumnos($grupo_id);
+
+                echo "<h2>Compañeros de clase</h2>";
+
+                if ($res && $res->num_rows > 0) {
+                    echo "<table class='tabla-alumno'>
                             <thead>
                                 <tr>
-                                    <th>Matrícula</th>
+                                    <th>ID Alumno</th>
                                     <th>Nombre</th>
                                     <th>Email</th>
                                 </tr>
-                            </thead>
-                            <tbody>";
+                            </thead>";
 
-                        while ($fila = $res->fetch_assoc()) {
-                            echo "<tr>
-                                    <td>{$fila['alumno_id']}</td>
-                                    <td>{$fila['nombre']}</td>
-                                    <td>{$fila['email']}</td>
-                                </tr>";
-                        }
-
-                        echo "</tbody></table>";
-
-                    } else {
-                        echo "<p>No hay alumnos en este grupo.</p>";
+                    while ($fila = $res->fetch_assoc()) {
+                        echo "<tr>
+                                <td>{$fila['alumno_id']}</td>
+                                <td>{$fila['nombre']}</td>
+                                <td>{$fila['email']}</td>
+                            </tr>";
                     }
+                    echo "</table>";
+                } else {
+                    echo "<p>No hay compañeros.</p>";
                 }
+            }
 
-                /* ===============================
-                LISTAR PROFESORES
-                ================================ */
-                elseif ($accion == 'listarp') {
+            /* =====================================================
+            LISTAR PROFESORES (MISMA BD)
+            ===================================================== */
+            elseif ($accion == 'listarp') {
 
-                    if ($id_alumno_url) {
+                $res = $objAlumno->Listar_profesores($alumno_id);
 
-                        $resultado = $objAlumno->Listar_profesores($id_alumno_url);
+                echo "<h2>Tus profesores</h2>";
 
-                        if ($resultado && $resultado->num_rows > 0) {
+                if ($res && $res->num_rows > 0) {
+                    echo "<table class='tabla-alumno'>
+                            <thead>
+                                <tr>
+                                    <th>Profesor</th>
+                                    <th>Especialidad</th>
+                                    <th>Asignatura</th>
+                                </tr>
+                            </thead>";
 
-                            echo "<h2>Profesores</h2>
-                                <table class='tabla-alumno'>
-                                <thead>
-                                    <tr>
-                                        <th>Nombre</th>
-                                        <th>Especialidad</th>
-                                        <th>Asignatura</th>
-                                    </tr>
-                                </thead>
-                                <tbody>";
-
-                            while ($datos = $resultado->fetch_assoc()) {
-                                echo "<tr>
-                                        <td>{$datos['nombre']}</td>
-                                        <td>{$datos['especialidad']}</td>
-                                        <td>{$datos['asignatura']}</td>
-                                    </tr>";
-                            }
-
-                            echo "</tbody></table>";
-
-                        } else {
-                            echo "<p>No hay profesores.</p>";
-                        }
-
-                    } else {
-                        echo "<p>Falta ID de alumno.</p>";
+                    while ($fila = $res->fetch_assoc()) {
+                        echo "<tr>
+                                <td>{$fila['nombre']}</td>
+                                <td>{$fila['especialidad']}</td>
+                                <td>{$fila['asignatura']}</td>
+                            </tr>";
                     }
+                    echo "</table>";
+                } else {
+                    echo "<p>No se encontraron profesores.</p>";
                 }
+            }
 
+            /* =====================================================
+            LISTAR ASIGNATURAS + BOTÓN
+            ===================================================== */
+            elseif ($accion == 'vercalificaciones' && !$grupo_id) {
 
-                /* ===============================
-                VER CALIFICACIONES
-                ================================ */
-                elseif ($accion == 'vercalificaciones') {
+                $res = $objAlumno->setCalificacion($alumno_id);
 
-                    if (isset($_GET['grupo_id']) && $id_alumno_url) {
+                echo "<h2>Mis asignaturas</h2>";
 
-                        $grupo_id = $_GET['grupo_id'];
-                        $resultado = $objAlumno->verCalificacion($id_alumno_url, $grupo_id);
+                if ($res && $res->num_rows > 0) {
+                    echo "<table class='tabla-alumno'>
+                            <thead>
+                                <tr>
+                                    <th>Asignatura</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>";
+                            
 
-                        if ($resultado && $resultado->num_rows > 0) {
-
-                            echo "<h2>Calificaciones</h2>
-                                <table class='tabla-alumno'>
-                                <thead>
-                                    <tr>
-                                        <th>Asignatura</th>
-                                        <th>P1</th>
-                                        <th>P2</th>
-                                        <th>P3</th>
-                                        <th>Promedio</th>
-                                    </tr>
-                                </thead>
-                                <tbody>";
-
-                            while ($datos = $resultado->fetch_assoc()) {
-                                echo "<tr>
-                                        <td>{$datos['asignatura']}</td>
-                                        <td>{$datos['calificacion_1']}</td>
-                                        <td>{$datos['calificacion_2']}</td>
-                                        <td>{$datos['calificacion_3']}</td>
-                                        <td>{$datos['promedio_final']}</td>
-                                    </tr>";
-                            }
-
-                            echo "</tbody></table>";
-
-                        } else {
-                            echo "<p>No se encontraron calificaciones</p>";
-                        }
-
-                    } else {
-                        echo "<p>Falta información</p>";
+                    while ($fila = $res->fetch_assoc()) {
+                        echo "<tr>
+                                <td>{$fila['asignatura']}</td>
+                                <td>
+                                    <a class='btn'
+                                    href='?accion=vercalificaciones&grupo_id={$fila['grupo_id']}'>
+                                    Ver calificaciones
+                                    </a>
+                                </td>
+                            </tr>";
                     }
+                    echo "</table>";
+                } else {
+                    echo "<p>No hay asignaturas.</p>";
                 }
-                else {
-                    echo "<h3>Seleccione una opción del menú</h3>";
+            }
+
+            /* =====================================================
+            MOSTRAR CALIFICACIONES (FINAL DEL PANEL)
+            ===================================================== */
+            elseif ($accion == 'vercalificaciones' && $grupo_id) {
+
+                $res = $objAlumno->verCalificacion($alumno_id, $grupo_id);
+
+                echo "<h2>Detalle de calificaciones</h2>";
+
+                if ($res && $res->num_rows > 0) {
+                    echo "<table class='tabla-alumno'>
+                            <thead>
+                            <tr>
+                                <th>Asignatura</th>
+                                <th>Parcial 1</th>
+                                <th>Parcial 2</th>
+                                <th>Parcial 3</th>
+                                <th>Promedio Final</th>
+                            </tr>
+                            </thead>";
+
+                    while ($fila = $res->fetch_assoc()) {
+                        echo "<tr>
+                                <td>{$fila['asignatura']}</td>
+                                <td>{$fila['calificacion_1']}</td>
+                                <td>{$fila['calificacion_2']}</td>
+                                <td>{$fila['calificacion_3']}</td>
+                                <td><strong>{$fila['promedio_final']}</strong></td>
+                            </tr>";
+                    }
+                    echo "</table>";
+
+                    echo "<input type='hidden' name='accion' value='vercalificaciones'>
+                        <button type='submit' class='btn'>Volver</button>";
+                } else {
+                    echo "<p>No hay calificaciones.</p>";
                 }
-                ?>
+            }
 
-                </div>
+            /* =====================================================
+            PANEL INICIAL
+            ===================================================== */
+            else {
+                echo "<h3>Seleccione una opción del menú</h3>";
+            }
 
-            </main>
-        </div>
+            /* =====================================================
+            LISTAR ASIGNATURAS para FALTAS DE ASISTENCIA
+            ===================================================== */
+
+            if ($accion == 'faltasasistencias' && $grupo_id) {
+
+                $res = $objAlumno->FaltasAsistencias($alumno_id, $grupo_id);
+
+                echo "<h2>Mis asignaturas</h2>";
+
+                if ($res && $res->num_rows > 0) {
+                    echo "<table class='tabla-alumno'>
+                            <thead>
+                                <tr>
+                                    <th>Asignatura</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>";
+                            
+
+                    while ($fila = $res->fetch_assoc()) {
+                        echo "<tr>
+                                <td>{$fila['asignatura']}</td>
+                                <td>
+                                    <a class='btn'
+                                    href='?accion=faltasasistencias&grupo_id={$fila['grupo_id']}'>
+                                    Ver faltas y asistencias
+                                    </a>
+                                </td>
+                            </tr>";
+                    }
+                    echo "</table>";
+                } else {
+                    echo "<p>No hay asignaturas.</p>";
+                }
+            }
+            ?>
+            
+            </div>
+        </main>
+    </div>
 
     </body>
 </html>
