@@ -83,5 +83,18 @@ class profesor extends user {
                             WHERE u.rol = 'profesor'";
         return $this->obtener_sentencia();
     }
+    public function Registrar_asistencia_por_profesor($alumno_id, $usuario_id_profe, $grupo_id, $fecha, $estado) {
+    $this->sentencia = "INSERT INTO asistencia (matriculado_id, fecha, estado)
+                        SELECT m.id, '$fecha', '$estado'
+                        FROM matriculado m
+                        INNER JOIN grupo g ON m.grupo_id = g.id
+                        INNER JOIN profesor p ON g.profesor_id = p.id
+                        WHERE m.alumno_id = '$alumno_id' 
+                        AND g.id = '$grupo_id'
+                        AND p.usuario_id = '$usuario_id_profe'
+                        ON DUPLICATE KEY UPDATE estado = VALUES(estado)"; 
+    // SE CORRIGE AQUÍ: Debe ser ejecutar_sentencia() para operaciones INSERT/UPDATE
+    return $this->ejecutar_sentencia(); 
+}
 }
 ?>
