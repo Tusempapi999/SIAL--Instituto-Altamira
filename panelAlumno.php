@@ -9,6 +9,8 @@
     =============================== */
     $id_alumno_url = isset($_GET['alumno_id']) ? $_GET['alumno_id'] : null;
 
+    $grupo_id = isset($_GET['grupo_id']) ? $_GET['grupo_id'] : null;
+
     /* usar sesión si no hay GET */
     if (!$id_alumno_url && isset($_SESSION['id_usuario'])) {
         $id_alumno_url = $_SESSION['id_usuario'];
@@ -16,6 +18,7 @@
 
     /* acción */
     $accion = isset($_GET['accion']) ? $_GET['accion'] : '';
+
 ?>
 
 <!DOCTYPE html>
@@ -65,6 +68,14 @@
                                 echo "<a href='?accion=vercalificaciones&alumno_id=$id_alumno_url&grupo_id={$datos['grupo_id']}'>
                                         {$datos['asignatura']}
                                     </a>";
+
+                                echo "<a href='?accion=listara&alumno_id=$id_alumno_url&grupo_id={$datos['grupo_id']}'>
+                                        {$datos['asignatura']}
+                                    </a>";
+                                
+                                echo "<a href='?accion=listarp&alumno_id=$id_alumno_url&grupo_id={$datos['grupo_id']}'>
+                                        {$datos['asignatura']}
+                                    </a>";
                             }
 
                         } else {
@@ -103,8 +114,7 @@
                 LISTAR ALUMNOS
                 ================================ */
                 if ($accion == 'listara') {
-
-                    $grupo_id = 1;
+                    
                     $res = $objAlumno->Listar_alumnos($grupo_id);
 
                     if ($res && $res->num_rows > 0) {

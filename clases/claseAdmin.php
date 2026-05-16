@@ -24,7 +24,5 @@
         public function matricularAlumno($alumno_id, $grupo_id) { // Función para matricular a un alumno en un grupo específico
             $this->sentencia = "INSERT INTO matriculado (alumno_id, grupo_id) VALUES ('$alumno_id', '$grupo_id')";
             return $this->ejecutar_sentencia(); // Se ejecuta la sentencia SQL y se devuelve el resultado
-        }
-
-        
+        }        
     }
