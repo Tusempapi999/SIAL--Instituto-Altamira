@@ -21,6 +21,7 @@
             ?>
 
             <nav class="menu-lateral">
+                <a href="?accion=verhorario">Ver horario</a>
                 <a href="?accion=listara">Listar compañeros</a>
                 <a href="?accion=listarp">Listar profesores</a>
                 <a href="?accion=faltasasistencias">Faltas y asistencias</a>
@@ -210,57 +211,104 @@
             ===================================================== */
 
             /* =====================================================
-   SECCIÓN: FALTAS DE ASISTENCIA
-===================================================== */
-if ($accion == 'faltasasistencias') {
+            SECCIÓN: FALTAS DE ASISTENCIA
+            ===================================================== */
+            if ($accion == 'faltasasistencias') {
 
-    // CASO A: El alumno NO ha hecho clic en ninguna materia todavía (Listar materias)
-    if (!$grupo_id) {
-        // Usamos setCalificacion porque es la que hace el INNER JOIN con asignaturas
-        $res = $objAlumno->setCalificacion($alumno_id); 
+                // CASO A: El alumno NO ha hecho clic en ninguna materia todavía (Listar materias)
+                if (!$grupo_id) {
+                    // Usamos setCalificacion porque es la que hace el INNER JOIN con asignaturas
+                    $res = $objAlumno->setCalificacion($alumno_id); 
 
-        echo "<h2>Selecciona una asignatura para ver tus faltas</h2>";
+                    echo "<h2>Selecciona una asignatura para ver tus faltas</h2>";
 
-        if ($res && $res->num_rows > 0) {
-            echo "<table class='tabla-alumno'>
-                    <thead><tr><th>Asignatura</th><th>Acción</th></tr></thead>";
-            while ($fila = $res->fetch_assoc()) {
-                echo "<tr>
-                        <td>{$fila['asignatura']}</td>
-                        <td>
-                            <a class='btn' href='?accion=faltasasistencias&grupo_id={$fila['grupo_id']}'>
-                                Ver faltas
-                            </a>
-                        </td>
-                      </tr>";
+                    if ($res && $res->num_rows > 0) {
+                        echo "<table class='tabla-alumno'>
+                                <thead><tr><th>Asignatura</th><th>Acción</th></tr></thead>";
+                        while ($fila = $res->fetch_assoc()) {
+                            echo "<tr>
+                                    <td>{$fila['asignatura']}</td>
+                                    <td>
+                                        <a class='btn' href='?accion=faltasasistencias&grupo_id={$fila['grupo_id']}'>
+                                            Ver faltas
+                                        </a>
+                                    </td>
+                                </tr>";
+                        }
+                        echo "</table>";
+                    } else {
+                        echo "<p>No estás matriculado en ninguna asignatura.</p>";
+                    }
+                } 
+                // CASO B: El alumno YA hizo clic en una materia (Mostrar las faltas de esa materia)
+                else {
+                    $resFaltas = $objAlumno->verFaltasAsistencia($grupo_id, $alumno_id);
+                    
+                    echo "<h2>Detalle de Faltas</h2>";
+                    echo "<a href='?accion=faltasasistencias' class='btn'>Volver al listado</a><br><br>";
+
+                    if ($resFaltas && $resFaltas->num_rows > 0) {
+                        echo "<table class='tabla-alumno'>
+                                <thead><tr><th>Fecha</th><th>Estado</th></tr></thead>";
+                        while ($falta = $resFaltas->fetch_assoc()) {
+                            echo "<tr>
+                                    <td>{$falta['fecha']}</td>
+                                    <td>{$falta['estado']}</td>
+                                </tr>";
+                        }
+                        echo "</table>";
+                    } else {
+                        echo "<p>No tienes faltas en esta asignatura.</p>";
+                    }
+                }
             }
-            echo "</table>";
-        } else {
-            echo "<p>No estás matriculado en ninguna asignatura.</p>";
-        }
-    } 
-    // CASO B: El alumno YA hizo clic en una materia (Mostrar las faltas de esa materia)
-    else {
-        $resFaltas = $objAlumno->verFaltasAsistencia($grupo_id, $alumno_id);
-        
-        echo "<h2>Detalle de Faltas</h2>";
-        echo "<a href='?accion=faltasasistencias' class='btn'>Volver al listado</a><br><br>";
 
-        if ($resFaltas && $resFaltas->num_rows > 0) {
-            echo "<table class='tabla-alumno'>
-                    <thead><tr><th>Fecha</th><th>Estado</th></tr></thead>";
-            while ($falta = $resFaltas->fetch_assoc()) {
-                echo "<tr>
-                        <td>{$falta['fecha']}</td>
-                        <td>{$falta['estado']}</td>
-                      </tr>";
+                if ($accion == 'verhorario') {
+                
+                // PASO 1: Si no se ha seleccionado grupo, listar asignaturas
+                if (!$grupo_id) {
+                    // Reutilizamos setCalificacion que ya tienes y devuelve las materias del alumno
+                    $resMaterias = $objAlumno->setCalificacion($alumno_id); 
+                    
+                    echo "<h2>Mi horario</h2>";
+                    if ($resMaterias && $resMaterias->num_rows > 0) {
+                        echo "<table class='tabla-alumno'>
+                                <thead><tr><th>Asignatura</th><th>Acción</th></tr></thead>";
+                        while ($materia = $resMaterias->fetch_assoc()) {
+                            echo "<tr>
+                                    <td>{$materia['asignatura']}</td>
+                                    <td><a class='btn' href='?accion=verhorario&grupo_id={$materia['grupo_id']}'>Consultar Horario</a></td>
+                                </tr>";
+                        }
+                        echo "</table>";
+                    }
+                } 
+                // PASO 2: Si ya se seleccionó una materia, mostrar su horario
+                else {
+                    $resHorario = $objAlumno->verHorarioAsignatura($grupo_id);
+                    
+                    echo "<h2>Horario de asignatura</h2>";
+                    echo "<a href='?accion=verhorario' class='btn'>Volver al listado</a><br><br>";
+
+                    if ($resHorario && $resHorario->num_rows > 0) {
+                        echo "<table class='tabla-alumno'>
+                                <thead>
+                                    <tr><th>Día</th><th>Hora Inicio</th><th>Hora Fin</th></tr>
+                                </thead>";
+                        while ($h = $resHorario->fetch_assoc()) {
+                            echo "<tr>
+                                    <td>{$h['dia_semana']}</td>
+                                    <td>{$h['hora_inicio']}</td>
+                                    <td>{$h['hora_fin']}</td>
+                                </tr>";
+                        }
+                        echo "</table>";
+                    } else {
+                        echo "<p>No hay un horario registrado</p>";
+                    }
+                }
             }
-            echo "</table>";
-        } else {
-            echo "<p>No tienes faltas en esta asignatura.</p>";
-        }
-    }
-}
+            
             ?>
             
             </div>
