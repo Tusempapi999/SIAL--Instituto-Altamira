@@ -94,5 +94,41 @@ class profesor extends user {
                             ON DUPLICATE KEY UPDATE estado = VALUES(estado)"; 
         return $this->ejecutar_sentencia(); 
     }
+
+        // 8. RESUMEN DE ASISTENCIA POR ALUMNO EN UN GRUPO
+    public function Resumen_asistencia_por_grupo($grupo_id) {
+
+        $this->sentencia = "
+            SELECT 
+                u.nombre AS alumno,
+                SUM(a.estado = 'presente') AS asistencias,
+                SUM(a.estado = 'sin justificar') AS faltas_sin_justificar,
+                SUM(a.estado = 'justificado') AS faltas_justificadas,
+                SUM(a.estado = 'retardo') AS retardos
+            FROM matriculado m
+            INNER JOIN alumno al ON al.id = m.alumno_id
+            INNER JOIN usuario u ON u.id = al.usuario_id
+            LEFT JOIN asistencia a ON a.matriculado_id = m.id
+            WHERE m.grupo_id = '$grupo_id'
+            GROUP BY m.id
+            ORDER BY u.nombre ASC
+        ";
+
+        return $this->obtener_sentencia();
+    }
+    public function Actualizar_asistencia($alumno_id, $grupo_id, $fecha, $estado) {
+
+        $this->sentencia = "
+            UPDATE asistencia a
+            INNER JOIN matriculado m ON a.matriculado_id = m.id
+            SET a.estado = '$estado'
+            WHERE m.alumno_id = '$alumno_id'
+            AND m.grupo_id = '$grupo_id'
+            AND a.fecha = '$fecha'
+        ";
+
+        return $this->ejecutar_sentencia();
+    }
+    
 }
 ?>
