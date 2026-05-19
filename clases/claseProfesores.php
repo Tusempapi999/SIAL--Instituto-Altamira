@@ -81,7 +81,7 @@ class profesor extends user {
         return $this->obtener_sentencia();
     }
 
-    // 7. REGISTRAR ASISTENCIA (CORREGIDO: Ahora usa ejecutar_sentencia)
+    // 7. REGISTRAR ASISTENCIA DE GRUPOS NORMALES
     public function Registrar_asistencia_por_profesor($alumno_id, $usuario_id_profe, $grupo_id, $fecha, $estado) {
         $this->sentencia = "INSERT INTO asistencia (matriculado_id, fecha, estado)
                             SELECT m.id, '$fecha', '$estado'
@@ -95,9 +95,8 @@ class profesor extends user {
         return $this->ejecutar_sentencia(); 
     }
 
-        // 8. RESUMEN DE ASISTENCIA POR ALUMNO EN UN GRUPO
+    // 8. RESUMEN DE ASISTENCIA POR ALUMNO EN UN GRUPO
     public function Resumen_asistencia_por_grupo($grupo_id) {
-
         $this->sentencia = "
             SELECT 
                 u.nombre AS alumno,
@@ -113,11 +112,11 @@ class profesor extends user {
             GROUP BY m.id
             ORDER BY u.nombre ASC
         ";
-
         return $this->obtener_sentencia();
     }
-    public function Actualizar_asistencia($alumno_id, $grupo_id, $fecha, $estado) {
 
+    // 9. ACTUALIZAR ASISTENCIA DE GRUPOS NORMALES
+    public function Actualizar_asistencia($alumno_id, $grupo_id, $fecha, $estado) {
         $this->sentencia = "
             UPDATE asistencia a
             INNER JOIN matriculado m ON a.matriculado_id = m.id
@@ -126,9 +125,83 @@ class profesor extends user {
             AND m.grupo_id = '$grupo_id'
             AND a.fecha = '$fecha'
         ";
-
         return $this->ejecutar_sentencia();
     }
+
     
+    // ==========================================
+    // NUEVOS MÉTODOS PARA EL FUNCIONAMIENTO DE CLUBS (CORREGIDOS)
+    // ==========================================
+
+    // ==========================================
+    // NUEVOS MÉTODOS PARA EL FUNCIONAMIENTO DE CLUBS (LOGICA DE ASISTENCIA)
+    // ==========================================
+
+    // 10. LISTAR ALUMNOS PERTENECIENTES A UN CLUB ESPECÍFICO
+    public function Listar_alumnos_club($club_id) {
+        $this->sentencia = "SELECT a.id AS alumno_id, u.nombre 
+                            FROM usuario u
+                            INNER JOIN alumno a ON u.id = a.usuario_id
+                            INNER JOIN inscripcion_club ic ON a.id = ic.alumno_id
+                            WHERE ic.club_id = '$club_id'
+                            ORDER BY u.nombre ASC";
+        return $this->obtener_sentencia();
+    }
+
+    // 11. BUSCAR UN CLUB ID AUTOMÁTICAMENTE PARA EL PROFESOR
+    public function Obtener_club_por_profesor($usuario_id_profe) {
+        $this->sentencia = "SELECT c.id 
+                            FROM club c
+                            INNER JOIN profesor p ON c.profesor_id = p.id
+                            WHERE p.usuario_id = '$usuario_id_profe' 
+                            LIMIT 1";
+        $resultado = $this->obtener_sentencia();
+        if ($resultado && $resultado->num_rows > 0) {
+            $fila = $resultado->fetch_assoc();
+            return $fila['id'];
+        }
+        return null;
+    }
+
+    // 12. GUARDAR LA ASISTENCIA INDIVIDUAL DEL CLUB
+    public function Registrar_asistencia_club($alumno_id, $club_id, $fecha, $estado) {
+        // Vinculación directa con la tabla inscripcion_club
+        $this->sentencia = "INSERT INTO asistencia_club (alumno_id, fecha, estado)
+                            VALUES ('$alumno_id', '$fecha', '$estado')
+                            ON DUPLICATE KEY UPDATE estado = '$estado'";
+        return $this->ejecutar_sentencia();
+    }
+
+    // 13. RESUMEN ACUMULADO DE ASISTENCIAS Y FALTAS PARA EL CLUB
+    public function Resumen_asistencia_club($club_id) {
+        $this->sentencia = "
+            SELECT 
+                u.nombre AS alumno,
+                SUM(acb.estado = 'presente') AS asistencias,
+                SUM(acb.estado = 'sin justificar') AS faltas_sin_justificar,
+                SUM(acb.estado = 'justificado') AS faltas_justificadas,
+                SUM(acb.estado = 'retardo') AS retardos
+            FROM inscripcion_club ic
+            INNER JOIN alumno al ON al.id = ic.alumno_id
+            INNER JOIN usuario u ON u.id = al.usuario_id
+            LEFT JOIN asistencia_club acb ON acb.alumno_id = ic.alumno_id
+            WHERE ic.club_id = '$club_id'
+            GROUP BY ic.alumno_id
+            ORDER BY u.nombre ASC
+        ";
+        return $this->obtener_sentencia();
+    }
+    // 14. ACTUALIZAR ASISTENCIA EXISTENTE EN UN CLUB
+    public function Actualizar_asistencia_club($alumno_id, $club_id, $fecha, $estado) {
+        $this->sentencia = "
+            UPDATE asistencia_club acb
+            INNER JOIN alumno_club ac ON acb.alumno_club_id = ac.id
+            SET acb.estado = '$estado'
+            WHERE ac.alumno_id = '$alumno_id'
+            AND ac.club_id = '$club_id'
+            AND acb.fecha = '$fecha'
+        ";
+        return $this->ejecutar_sentencia();
+    }
 }
 ?>

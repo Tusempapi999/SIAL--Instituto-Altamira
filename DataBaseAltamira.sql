@@ -318,3 +318,27 @@ INSERT INTO horario (grupo_id, aula_id, dia_semana, hora_inicio, hora_fin)
 VALUES 
 (2, 2, 'Martes', '11:30:00', '13:30:00'),
 (2, 2, 'Jueves', '11:30:00', '13:30:00');
+
+
+-- Insertar Club de Robótica (Profesor ID: 2, Aula ID: 2)
+INSERT INTO club (nombre, descripcion, profesor_id, aula_id, hora_inicio, hora_fin, cupo_maximo) 
+VALUES (
+    'Club de Robótica y Automatización', 
+    'Diseño, armado y programación de prototipos robóticos utilizando hardware libre y lógica de circuitos.', 
+    2, -- Pedro Gutierrez
+    2, -- Laboratorio de Cómputo
+    '15:00:00', 
+    '17:00:00', 
+    15
+);
+
+INSERT INTO club (nombre, descripcion, profesor_id, aula_id, hora_inicio, hora_fin, cupo_maximo) 
+VALUES (
+    'Club de Robótica y Automatización', 
+    'Diseño, armado y programación de prototipos robóticos utilizando hardware libre y lógica de circuitos.', 
+    1, -- Pedro Gutierrez
+    6, -- Laboratorio de Cómputo
+    '15:00:00', 
+    '17:00:00', 
+    15
+);

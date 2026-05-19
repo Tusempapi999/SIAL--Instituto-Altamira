@@ -128,7 +128,7 @@ setInterval(cambiarFondo, 6050);
 </body>
 
 <footer class="encabezado">
-    <h2 id="nuestra-informacion">Contacto</h2>
+    <h2 id="nuestra-informacion ">Contacto</h2>
     <p>Teléfono: (123) 456-7890</p>
     <p>Email: info@altamira.edu.mx</p>
 </footer>

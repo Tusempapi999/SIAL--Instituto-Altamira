@@ -67,7 +67,7 @@ class alumno extends user {
         return $this->obtener_sentencia();
     }
 
-    //VER FALTAS Y ASISTENCIAS DE UNA ASIGNATURA
+    // VER FALTAS Y ASISTENCIAS DE UNA ASIGNATURA
     public function FaltasAsistencias($alumno_id, $grupo_id) {
         $this->sentencia = "
             SELECT matriculado.id AS matriculado_id, 
@@ -84,7 +84,7 @@ class alumno extends user {
 
     // ===== LISTAR ASIGNATURAS PARA EL PANEL DE ASISTENCIA =====
     public function verFaltasAsistencia($grupo_id, $alumno_id) {
-    $this->sentencia = "
+        $this->sentencia = "
             SELECT asistencia.fecha, asistencia.estado 
             FROM asistencia 
             INNER JOIN matriculado ON asistencia.matriculado_id = matriculado.id
@@ -94,7 +94,7 @@ class alumno extends user {
         return $this->obtener_sentencia();
     }
 
-    //CONTAR FALTAS DE ASISTENCIA
+    // CONTAR FALTAS DE ASISTENCIA
     public function contarFaltasAsistencia($matriculado_id) {
         $this->sentencia = "
             SELECT COUNT(*) as cantidad 
@@ -107,10 +107,9 @@ class alumno extends user {
         return $this->obtener_sentencia();
     }
 
-    //Consultar horario del alumno
+    // Consultar horario del alumno
     public function verHorarioAsignatura($grupo_id) {
-    // Consulta simple: trae día y horas de la tabla horario para ese grupo
-    $this->sentencia = "
+        $this->sentencia = "
             SELECT dia_semana, hora_inicio, hora_fin 
             FROM horario 
             WHERE grupo_id = '$grupo_id' 
@@ -119,51 +118,47 @@ class alumno extends user {
         return $this->obtener_sentencia();
     }
 
-    //Listar clubes sabatinos
+    // ===== REVISADO: Listar mis clubes inscritos (Basado en tu tabla real del SQL) =====
     public function listarMisClubs($alumno_id) {
-    $this->sentencia = "
-            SELECT asignatura.nombre AS club, 
-                    grupo.id AS grupo_id
-            FROM matriculado
-            INNER JOIN grupo ON matriculado.grupo_id = grupo.id
-            INNER JOIN asignatura ON grupo.asignatura_id = asignatura.id
-            WHERE matriculado.alumno_id = '$alumno_id' 
-            AND UPPER(asignatura.nombre) LIKE '%CLUB%'
+        $this->sentencia = "
+            SELECT club.nombre AS club, 
+                   club.id AS club_id
+            FROM inscripcion_club
+            INNER JOIN club ON inscripcion_club.club_id = club.id
+            WHERE inscripcion_club.alumno_id = '$alumno_id'
         "; 
-    
         return $this->obtener_sentencia();
     }
 
-    //Ver clubes sabatinos
-    public function verAsistenciaClub($grupo_id, $alumno_id) {        $this->sentencia = "
-            SELECT asistencia.fecha, asistencia.estado
-            FROM asistencia
-            INNER JOIN matriculado m ON asistencia.matriculado_id = matriculado.id
-            WHERE matriculado.grupo_id = '$grupo_id' 
-            AND matriculado.alumno_id = '$alumno_id'
-            ORDER BY asistencia.fecha DESC
+    // ===== REVISADO: Ver asistencias de un club sabatino =====
+    public function verAsistenciaClub($club_id, $alumno_id) {        
+        $this->sentencia = "
+            SELECT fecha, estado
+            FROM asistencia_club
+            WHERE alumno_id = '$alumno_id'
+            ORDER BY fecha DESC
         ";
         return $this->obtener_sentencia();
     }
 
-    // Inscribirse al club sabatino
-    public function inscribirClub($alumno_id, $grupo_id) {
-    $this->sentencia = "
-        INSERT INTO matriculado (alumno_id, grupo_id) VALUES ('$alumno_id', '$grupo_id')
+    // ===== REVISADO: Guardar registro de inscripción en el club sabatino =====
+    public function inscribirClub($alumno_id, $club_id) {
+        $this->sentencia = "
+            INSERT INTO inscripcion_club (alumno_id, club_id) VALUES ('$alumno_id', '$club_id')
         ";
-    return $this->ejecutar_sentencia();
-}
+        return $this->ejecutar_sentencia();
+    }
 
-    // Listar clubes disponibles para inscripción
+    // ===== REVISADO: Listar todos los clubes a los que el alumno actual no pertenece =====
     public function listarClubesDisponibles($alumno_id) {
         $this->sentencia = "
-            SELECT asignatura.nombre AS club, 
-                    grupo.id AS grupo_id
-            FROM grupo
-            INNER JOIN asignatura ON grupo.asignatura_id = asignatura.id
-            LEFT JOIN matriculado ON matriculado.grupo_id = grupo.id AND matriculado.alumno_id = '$alumno_id'
-            WHERE asignatura.nombre LIKE '%Club%'
-            AND matriculado.id IS NULL
+            SELECT id AS club_id, 
+                   nombre AS club, 
+                   cupo_maximo 
+            FROM club 
+            WHERE id NOT IN (
+                SELECT club_id FROM inscripcion_club WHERE alumno_id = '$alumno_id'
+            )
         ";
         return $this->obtener_sentencia();
     }
