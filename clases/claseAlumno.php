@@ -85,7 +85,7 @@ class alumno extends user {
     // ===== LISTAR ASIGNATURAS PARA EL PANEL DE ASISTENCIA =====
     public function verFaltasAsistencia($grupo_id, $alumno_id) {
     $this->sentencia = "
-                SELECT asistencia.fecha, asistencia.estado 
+            SELECT asistencia.fecha, asistencia.estado 
                 FROM asistencia 
                 INNER JOIN matriculado ON asistencia.matriculado_id = matriculado.id
                 WHERE matriculado.grupo_id = '$grupo_id' 
@@ -105,5 +105,15 @@ class alumno extends user {
                     ";
         return $this->obtener_sentencia();
     }
+
+    //Consultar horario del alumno
+    public function verHorarioAsignatura($grupo_id) {
+    // Consulta simple: trae día y horas de la tabla horario para ese grupo
+    $this->sentencia = "SELECT dia_semana, hora_inicio, hora_fin 
+                        FROM horario 
+                        WHERE grupo_id = '$grupo_id' 
+                        ORDER BY dia_semana ASC";
+    return $this->obtener_sentencia();
+}
 }
 ?>
