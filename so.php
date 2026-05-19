@@ -18,6 +18,7 @@
         <a href="#informacion" class="link-info">Información</a>
         <a href="#eventos" class="link-info">Eventos</a>
         <a href="#lugar" class="link-info">Ubicación</a>
+        <a href="#nuestra-informacion" class="link-info">Nuestra información</a>
         <a href="inicio.php" class="btn">
   <button type="button">Ingresar</button>
 </a>
@@ -100,8 +101,11 @@
 const imagenes = [
     "fondoIndex.png",
     "galeria1.jpeg",
+    "galeria2.jpeg",
     "galeria3.jpeg",
-    "galeria2.jpeg"
+    "galeria4.png",
+    "galeria5.png",
+    
 ];
 
 let indice = 0;
@@ -124,7 +128,7 @@ setInterval(cambiarFondo, 6050);
 </body>
 
 <footer class="encabezado">
-    <h2>Contacto</h2>
+    <h2 id="nuestra-informacion">Contacto</h2>
     <p>Teléfono: (123) 456-7890</p>
     <p>Email: info@altamira.edu.mx</p>
 </footer>

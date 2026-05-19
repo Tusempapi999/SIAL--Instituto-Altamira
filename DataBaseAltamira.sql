@@ -304,3 +304,17 @@ SELECT COUNT(*) as cantidad FROM asistencia
 INNER JOIN matriculado ON asistencia.matriculado_id = matriculado.id
 INNER JOIN grupo ON matriculado.grupo_id = grupo.id
 WHERE grupo.asignatura_id = 1 AND matriculado.alumno_id = 1 AND asistencia.estado = 'sin justificar' GROUP BY matriculado.alumno_id;
+
+-- Horario para Matemáticas VI (Grupo 1, Aula 101 [id=1])
+-- Lunes y Miércoles de 8:00 AM a 10:00 AM
+INSERT INTO horario (grupo_id, aula_id, dia_semana, hora_inicio, hora_fin) 
+VALUES 
+(1, 1, 'Lunes', '08:00:00', '10:00:00'),
+(1, 1, 'Miércoles', '08:00:00', '10:00:00');
+
+-- Horario para Programación Web (Grupo 2, Laboratorio de Cómputo [id=2])
+-- Martes y Jueves de 11:30 AM a 1:30 PM
+INSERT INTO horario (grupo_id, aula_id, dia_semana, hora_inicio, hora_fin) 
+VALUES 
+(2, 2, 'Martes', '11:30:00', '13:30:00'),
+(2, 2, 'Jueves', '11:30:00', '13:30:00');
