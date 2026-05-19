@@ -1,5 +1,5 @@
 <?php
-// Esto debe ir SIEMPRE al inicio del archivo
+session_start();
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -33,8 +33,8 @@ body {
         <h2>Bienvenido</h2>
         <p class="subtitle">Para continuar ingrese usuario y contraseña</p>
 
-        <!-- 🔴 NOTIFICACIÓN DE ERROR -->
-        <?php if (isset($_GET['error'])) { ?>
+        <!-- ERROR -->
+        <?php if (!empty($_GET['error'])) { ?>
             <div class="error-msg">
                 ❌ Matrícula o contraseña incorrecta
             </div>

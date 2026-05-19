@@ -18,14 +18,18 @@
         <a href="#informacion" class="link-info">Información</a>
         <a href="#eventos" class="link-info">Eventos</a>
         <a href="#lugar" class="link-info">Ubicación</a>
-        <a href="inicio.php" class="btn">Ingresar</a>
+        <a href="#nuestra-informacion" class="link-info">Nuestra información</a>
+        <a href="inicio.php" class="btn">
+  <button type="button">Ingresar</button>
+</a>
     </div>
 </header>
-
+<br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br>
 <main>
-    <h1>Bienvenid@s al Instituto Altamira</h1>
+    <h1 id="informacion">Bienvenid@s al Instituto Altamira</h1>
         
-    <h2 id="informacion">Nuestra Institución</h2>
+    <h2 >Nuestra Institución</h2>
 
     <div class="info-grid">
         <section>
@@ -54,7 +58,7 @@
         </section>
     </div>
 </main>
-
+<br><br><br><br><br><br>
 <main>
     <h2 id="eventos">Eventos Próximos</h2>
 
@@ -73,7 +77,7 @@
         <p><strong>Fecha:</strong> 30 de Octubre</p>
     </article>
 </main>
-
+<br><br><br><br><br><br>
 <main>
     <h2 id="lugar">Ubicación</h2>
 
@@ -97,8 +101,11 @@
 const imagenes = [
     "fondoIndex.png",
     "galeria1.jpeg",
+    "galeria2.jpeg",
     "galeria3.jpeg",
-    "galeria2.jpeg"
+    "galeria4.png",
+    "galeria5.png",
+    
 ];
 
 let indice = 0;
@@ -115,8 +122,14 @@ function cambiarFondo() {
 }
 
 cambiarFondo();
-setInterval(cambiarFondo, 20000);
+setInterval(cambiarFondo, 6050);
 </script>
 
 </body>
+
+<footer class="encabezado">
+    <h2 id="nuestra-informacion">Contacto</h2>
+    <p>Teléfono: (123) 456-7890</p>
+    <p>Email: info@altamira.edu.mx</p>
+</footer>
 </html>

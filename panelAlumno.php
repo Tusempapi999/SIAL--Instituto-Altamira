@@ -9,7 +9,6 @@
 
     <div class="contenedor">
 
-        <!-- SIDEBAR -->
         <aside class="sidebar">
             <div class="logo">
                 SIAL<br><span>Altamira</span>
@@ -30,16 +29,13 @@
             </nav>
         </aside>
 
-        <!-- CONTENIDO -->
         <main class="contenido">
-
             <header class="barra-superior">
                 <h2>Panel del Alumno</h2>
                 <div class="perfil">
                 <span class="nombre">Alumno</span>
                 <div class="circulo"></div>
 
-                <!-- MENÚ DESPLEGABLE -->
                 <div class="menu">
                     <div class="notificaciones">
                         Opciones
@@ -61,11 +57,11 @@
             $grupo_id = $_GET['grupo_id'] ?? null;
 
             /* =====================================================
-            LISTAR COMPAÑEROS (USA matriculado + alumno + usuario)
+            LISTAR COMPAÑEROS
             ===================================================== */
             if ($accion == 'listara') {
 
-                $grupo_id = 1; // solo lectura, NO cambia BD
+                $grupo_id = 1; 
                 $res = $objAlumno->Listar_alumnos($grupo_id);
 
                 echo "<h2>Compañeros de clase</h2>";
@@ -78,7 +74,8 @@
                                     <th>Nombre</th>
                                     <th>Email</th>
                                 </tr>
-                            </thead>";
+                            </thead>
+                            <tbody>";
 
                     while ($fila = $res->fetch_assoc()) {
                         echo "<tr>
@@ -87,14 +84,14 @@
                                 <td>{$fila['email']}</td>
                             </tr>";
                     }
-                    echo "</table>";
+                    echo "</tbody></table>";
                 } else {
                     echo "<p>No hay compañeros.</p>";
                 }
             }
 
             /* =====================================================
-            LISTAR PROFESORES (MISMA BD)
+            LISTAR PROFESORES
             ===================================================== */
             elseif ($accion == 'listarp') {
 
@@ -110,7 +107,8 @@
                                     <th>Especialidad</th>
                                     <th>Asignatura</th>
                                 </tr>
-                            </thead>";
+                            </thead>
+                            <tbody>";
 
                     while ($fila = $res->fetch_assoc()) {
                         echo "<tr>
@@ -119,145 +117,114 @@
                                 <td>{$fila['asignatura']}</td>
                             </tr>";
                     }
-                    echo "</table>";
+                    echo "</tbody></table>";
                 } else {
                     echo "<p>No se encontraron profesores.</p>";
                 }
             }
 
             /* =====================================================
-            LISTAR ASIGNATURAS + BOTÓN
-            ===================================================== */
-            elseif ($accion == 'vercalificaciones' && !$grupo_id) {
+                VER CALIFICACIONES (TODAS EN UNA SOLA TABLA GENERAL)
+                ===================================================== */
+                elseif ($accion == 'vercalificaciones') {
 
-                $res = $objAlumno->setCalificacion($alumno_id);
+                    // Cambiamos a setCalificacion que sí sabe listar todas las materias del alumno de golpe
+                    $res = $objAlumno->setCalificacion($alumno_id); 
 
-                echo "<h2>Mis asignaturas</h2>";
-
-                if ($res && $res->num_rows > 0) {
+                    echo "<h2>Calificaciones</h2><br>";
                     echo "<table class='tabla-alumno'>
                             <thead>
                                 <tr>
-                                    <th>Asignatura</th>
-                                    <th>Acción</th>
+                                    <th>Materia</th>
+                                    <th>Parcial 1</th>
+                                    <th>Parcial 2</th>
+                                    <th>Parcial 3</th>
+                                    <th>Promedio</th>
                                 </tr>
-                            </thead>";
+                            </thead>
+                            <tbody>";
+
+                    if ($res && $res->num_rows > 0) {
+                        while ($fila = $res->fetch_assoc()) {
                             
+                            // Convertimos a flotante. Si los nombres en tu BD son diferentes, asegúrate de poner los correctos aquí
+                            $p1 = isset($fila['calificacion_1']) ? floatval($fila['calificacion_1']) : 0;
+                            $p2 = isset($fila['calificacion_2']) ? floatval($fila['calificacion_2']) : 0;
+                            $p3 = isset($fila['calificacion_3']) ? floatval($fila['calificacion_3']) : 0;
 
-                    while ($fila = $res->fetch_assoc()) {
-                        echo "<tr>
-                                <td>{$fila['asignatura']}</td>
-                                <td>
-                                    <a class='btn'
-                                    href='?accion=vercalificaciones&grupo_id={$fila['grupo_id']}'>
-                                    Ver calificaciones
-                                    </a>
-                                </td>
-                            </tr>";
+                            // Cálculo automático del promedio con dos decimales
+                            $promedio = number_format(($p1 + $p2 + $p3) / 3, 2);
+
+                            echo "<tr>
+                                    <td><strong>{$fila['asignatura']}</strong></td>
+                                    <td>{$p1}</td>
+                                    <td>{$p2}</td>
+                                    <td>{$p3}</td>
+                                    <td><strong>{$promedio}</strong></td>
+                                </tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='5'>No tienes materias o calificaciones registradas actualmente.</td></tr>";
                     }
-                    echo "</table>";
-                } else {
-                    echo "<p>No hay asignaturas.</p>";
+                    echo "</tbody></table>";
                 }
-            }
 
-            /* =====================================================
-            MOSTRAR CALIFICACIONES (FINAL DEL PANEL)
-            ===================================================== */
-            elseif ($accion == 'vercalificaciones' && $grupo_id) {
-
-                $res = $objAlumno->verCalificacion($alumno_id, $grupo_id);
-
-                echo "<h2>Detalle de calificaciones</h2>";
-
-                if ($res && $res->num_rows > 0) {
-                    echo "<table class='tabla-alumno'>
-                            <thead>
-                            <tr>
-                                <th>Asignatura</th>
-                                <th>Parcial 1</th>
-                                <th>Parcial 2</th>
-                                <th>Parcial 3</th>
-                                <th>Promedio Final</th>
-                            </tr>
-                            </thead>";
-
-                    while ($fila = $res->fetch_assoc()) {
-                        echo "<tr>
-                                <td>{$fila['asignatura']}</td>
-                                <td>{$fila['calificacion_1']}</td>
-                                <td>{$fila['calificacion_2']}</td>
-                                <td>{$fila['calificacion_3']}</td>
-                                <td><strong>{$fila['promedio_final']}</strong></td>
-                            </tr>";
-                    }
-                    echo "</table>";
-
-                    echo "<input type='hidden' name='accion' value='vercalificaciones'>
-                        <button type='submit' class='btn'>Volver</button>";
-                } else {
-                    echo "<p>No hay calificaciones.</p>";
-                }
-            }
-
-            /* =====================================================
-            PANEL INICIAL
-            ===================================================== */
-            else {
-                echo "<h3>Seleccione una opción del menú</h3>";
-            }
-
-            /* =====================================================
-            LISTAR ASIGNATURAS para FALTAS DE ASISTENCIA
-            ===================================================== */
-
+            
             /* =====================================================
             SECCIÓN: FALTAS DE ASISTENCIA
             ===================================================== */
             if ($accion == 'faltasasistencias') {
 
+
                 // El alumno NO ha hecho clic en ninguna materia todavía (Listar materias)
                 if (!$grupo_id) {
-                    
                     $res = $objAlumno->setCalificacion($alumno_id); 
 
-                    echo "<h2>Selecciona una asignatura para ver tus faltas</h2>";
+                    echo "<h2>Selecciona una asignatura para ver tus faltas</h2><br>";
 
                     if ($res && $res->num_rows > 0) {
                         echo "<table class='tabla-alumno'>
-                                <thead><tr><th>Asignatura</th><th>Acción</th></tr></thead>";
+                                <thead><tr><th>Asignatura</th><th>Acción</th></tr></thead>
+                                <tbody>";
                         while ($fila = $res->fetch_assoc()) {
                             echo "<tr>
                                     <td>{$fila['asignatura']}</td>
                                     <td>
-                                        <a class='btn' href='?accion=faltasasistencias&grupo_id={$fila['grupo_id']}'>
+                                        <a  href='?accion=faltasasistencias&grupo_id={$fila['grupo_id']}'
+                                         class='btn-regresar'
+                                        style='background:#2ecc71'>
                                             Ver faltas
                                         </a>
                                     </td>
-                                </tr>";
+                                  </tr>";
                         }
-                        echo "</table>";
+                        echo "</tbody></table>";
                     } else {
                         echo "<p>No estás matriculado en ninguna asignatura.</p>";
                     }
                 } 
+
                 // El alumno YA hizo clic en una materia (Mostrar las faltas de esa materia)
+
                 else {
                     $resFaltas = $objAlumno->verFaltasAsistencia($grupo_id, $alumno_id);
                     
                     echo "<h2>Detalle de Faltas</h2>";
-                    echo "<a href='?accion=faltasasistencias' class='btn'>Volver al listado</a><br><br>";
+                    
 
                     if ($resFaltas && $resFaltas->num_rows > 0) {
                         echo "<table class='tabla-alumno'>
-                                <thead><tr><th>Fecha</th><th>Estado</th></tr></thead>";
+                                <thead><tr><th>Fecha</th><th>Estado</th></tr></thead>
+                                <tbody>";
                         while ($falta = $resFaltas->fetch_assoc()) {
                             echo "<tr>
                                     <td>{$falta['fecha']}</td>
                                     <td>{$falta['estado']}</td>
-                                </tr>";
+                                  </tr>";
                         }
-                        echo "</table>";
+                        echo "</tbody></table> <br>";
+
+                        echo "<a href='?accion=faltasasistencias' class='btn-regresar'>Volver al listado</a><br><br>";
                     } else {
                         echo "<p>No tienes faltas en esta asignatura.</p>";
                     }
@@ -268,7 +235,7 @@
                 
             // Si no se ha seleccionado grupo, listar asignaturas
             if (!$grupo_id) {
-                    
+
                 $resMaterias = $objAlumno->setCalificacion($alumno_id); 
                     
                 echo "<h2>Mi horario</h2>";
@@ -289,7 +256,7 @@
                     $resHorario = $objAlumno->verHorarioAsignatura($grupo_id);
                     
                     echo "<h2>Horario de asignatura</h2>";
-                    echo "<a href='?accion=verhorario' class='btn'>Volver al listado</a><br><br>";
+                    
 
                     if ($resHorario && $resHorario->num_rows > 0) {
                         echo "<table class='tabla-alumno'>
@@ -304,6 +271,7 @@
                                 </tr>";
                         }
                         echo "</table>";
+                        echo "<a href='?accion=verhorario' class='btn-regresar'>Volver al listado</a><br><br>";
                     } else {
                         echo "<p>No hay un horario registrado</p>";
                     }
@@ -389,6 +357,7 @@
                     echo "<p>No se han registrado asistencias para este club</p>";
                 }
             }
+
         }
             
             ?>
