@@ -1,4 +1,4 @@
-32243567gw2<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
