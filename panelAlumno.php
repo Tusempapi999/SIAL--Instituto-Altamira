@@ -26,6 +26,7 @@
                 <a href="?accion=listarp">Listar profesores</a>
                 <a href="?accion=faltasasistencias">Faltas y asistencias</a>
                 <a href="?accion=vercalificaciones">Ver calificaciones</a>
+                <a href="?accion=clubes">Clubes sabatinos</a>
             </nav>
         </aside>
 
@@ -215,9 +216,9 @@
             ===================================================== */
             if ($accion == 'faltasasistencias') {
 
-                // CASO A: El alumno NO ha hecho clic en ninguna materia todavía (Listar materias)
+                // El alumno NO ha hecho clic en ninguna materia todavía (Listar materias)
                 if (!$grupo_id) {
-                    // Usamos setCalificacion porque es la que hace el INNER JOIN con asignaturas
+                    
                     $res = $objAlumno->setCalificacion($alumno_id); 
 
                     echo "<h2>Selecciona una asignatura para ver tus faltas</h2>";
@@ -240,7 +241,7 @@
                         echo "<p>No estás matriculado en ninguna asignatura.</p>";
                     }
                 } 
-                // CASO B: El alumno YA hizo clic en una materia (Mostrar las faltas de esa materia)
+                // El alumno YA hizo clic en una materia (Mostrar las faltas de esa materia)
                 else {
                     $resFaltas = $objAlumno->verFaltasAsistencia($grupo_id, $alumno_id);
                     
@@ -263,27 +264,27 @@
                 }
             }
 
-                if ($accion == 'verhorario') {
+            if ($accion == 'verhorario') {
                 
-                // PASO 1: Si no se ha seleccionado grupo, listar asignaturas
-                if (!$grupo_id) {
-                    // Reutilizamos setCalificacion que ya tienes y devuelve las materias del alumno
-                    $resMaterias = $objAlumno->setCalificacion($alumno_id); 
+            // Si no se ha seleccionado grupo, listar asignaturas
+            if (!$grupo_id) {
                     
-                    echo "<h2>Mi horario</h2>";
-                    if ($resMaterias && $resMaterias->num_rows > 0) {
-                        echo "<table class='tabla-alumno'>
-                                <thead><tr><th>Asignatura</th><th>Acción</th></tr></thead>";
-                        while ($materia = $resMaterias->fetch_assoc()) {
-                            echo "<tr>
-                                    <td>{$materia['asignatura']}</td>
-                                    <td><a class='btn' href='?accion=verhorario&grupo_id={$materia['grupo_id']}'>Consultar Horario</a></td>
-                                </tr>";
+                $resMaterias = $objAlumno->setCalificacion($alumno_id); 
+                    
+                echo "<h2>Mi horario</h2>";
+                if ($resMaterias && $resMaterias->num_rows > 0) {
+                    echo "<table class='tabla-alumno'>
+                            <thead><tr><th>Asignatura</th><th>Acción</th></tr></thead>";
+                    while ($materia = $resMaterias->fetch_assoc()) {
+                        echo "<tr>
+                                <td>{$materia['asignatura']}</td>
+                                <td><a class='btn' href='?accion=verhorario&grupo_id={$materia['grupo_id']}'>Consultar Horario</a></td>
+                            </tr>";
                         }
                         echo "</table>";
                     }
                 } 
-                // PASO 2: Si ya se seleccionó una materia, mostrar su horario
+                // Si ya se seleccionó una materia, mostrar su horario
                 else {
                     $resHorario = $objAlumno->verHorarioAsignatura($grupo_id);
                     
@@ -307,7 +308,88 @@
                         echo "<p>No hay un horario registrado</p>";
                     }
                 }
+
             }
+            /* =====================================================
+            CLUBES SABATINOS
+            ===================================================== */
+            if ($accion == 'clubes') {
+            echo "<div class='seccion-clubes'>";
+
+            // PROCESO DE INSCRIPCIÓN
+            if (isset($_GET['inscribir_id'])) {
+            $id_del_grupo = $_GET['inscribir_id'];
+
+            $misClubs = $objAlumno->listarMisClubs($alumno_id);
+            if ($misClubs && $misClubs->num_rows > 0) {
+                echo "<h2>No puedes inscribirte</h2>";
+                echo "<p>Ya estás inscrito en un club</p>";
+                echo "<a href='?accion=clubes' class='btn'>Volver</a>";
+            } else {
+                $objAlumno->inscribirClub($alumno_id, $id_del_grupo);
+                echo "<h2>Te has inscrito con éxito</h2>";
+                echo "<a href='?accion=clubes' class='btn'>Volver a mi panel de clubes</a>";
+            }
+        }
+
+            // VER ASISTENCIAS
+            elseif (isset($_GET['grupo_id'])) {
+                $resAsis = $objAlumno->verAsistenciaClub($_GET['grupo_id'], $alumno_id);
+
+                echo "<h2>Control de Asistencia</h2>";
+                echo "<a href='?accion=clubes' class='btn'>Volver</a>";
+                
+                if ($resAsis && $resAsis->num_rows > 0) {
+                    echo "<table class='tabla-alumno'>
+                            <thead><tr><th>Fecha</th><th>Estado</th></tr></thead>";
+                    while ($asist = $resAsis->fetch_assoc()) {
+                        echo "<tr><td>{$asist['fecha']}</td><td>{$asist['estado']}</td></tr>";
+                    }
+                    echo "</table>";
+                } else {
+                    echo "<p>Aún no se han registrado asistencias para este club</p>";
+                }
+            }
+
+            // PANTALLA PRINCIPAL de listados de clubes
+            else {
+                echo "<h2>Clubes Sabatinos</h2>";
+
+                // Tabla de Clubes Inscritos
+                $misClubes = $objAlumno->listarMisClubs($alumno_id);
+                echo "<h3>Mis Clubes</h3>";
+                if ($misClubes && $misClubes->num_rows > 0) {
+                    echo "<table class='tabla-alumno'>
+                            <thead><tr><th>Club</th><th>Acción</th></tr></thead>";
+                    while ($fila = $misClubes->fetch_assoc()) {
+                        echo "<tr>
+                                <td>{$fila['club']}</td>
+                                <td><a class='btn' href='?accion=clubes&grupo_id={$fila['grupo_id']}'>Ver Asistencias</a></td>
+                            </tr>";
+                    }
+                    echo "</table>";
+                } else {
+                    echo "<p>No tienes inscripciones activas.</p>";
+                }
+
+                // Tabla de Clubes Disponibles para Inscribirse
+                $disponibles = $objAlumno->listarClubesDisponibles($alumno_id);
+                echo "<h3>Clubes Disponibles para Inscripción</h3>";
+                if ($disponibles && $disponibles->num_rows > 0) {
+                    echo "<table class='tabla-alumno'>
+                            <thead><tr><th>Nombre del Club</th><th>Acción</th></tr></thead>";
+                    while ($filaD = $disponibles->fetch_assoc()) {
+                        echo "<tr>
+                                <td>{$filaD['club']}</td>
+                                <td><a class='btn' href='?accion=clubes&inscribir_id={$filaD['grupo_id']}'>Inscribirme</a></td>
+                            </tr>";
+                    }
+                    echo "</table>";
+                } else {
+                    echo "<p>No se han registrado asistencias para este club</p>";
+                }
+            }
+        }
             
             ?>
             
