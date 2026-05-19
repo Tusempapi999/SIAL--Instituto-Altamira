@@ -4,6 +4,72 @@
     <meta charset="UTF-8">
     <title>Panel Alumno</title>
     <link rel="stylesheet" href="visual_maestro.css">
+    <style>
+        /* ESTILOS PARA EL MODAL DE CONFIRMACIÓN */
+        .modal-club {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.5); 
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-club-contenido {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 25px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            text-align: left;
+        }
+        .modal-club-header {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .modal-club-detalles {
+            margin-bottom: 20px;
+            line-height: 1.6;
+            color: #555;
+        }
+        .modal-club-detalles strong {
+            color: #111;
+        }
+        .modal-club-acciones {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .btn-modal-cancelar {
+            background-color: #e74c3c;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-modal-confirmar {
+            background-color: #2ecc71;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
 
@@ -324,10 +390,21 @@
                     echo "<table class='tabla-alumno'>
                             <thead><tr><th>Nombre del Club</th><th>Cupo Máx.</th><th>Acción</th></tr></thead><tbody>";
                     while ($filaD = $disponibles->fetch_assoc()) {
+                        // Resguardamos las variables limpias para inyectar en la función JS
+                        $nombre_club = htmlspecialchars($filaD['club'], ENT_QUOTES, 'UTF-8');
+                        $descripcion_club = isset($filaD['descripcion']) ? htmlspecialchars($filaD['descripcion'], ENT_QUOTES, 'UTF-8') : 'Sin descripción disponible.';
+                        $cupo = intval($filaD['cupo_maximo']);
+                        $id_c = intval($filaD['club_id']);
+
                         echo "<tr>
-                                <td>{$filaD['club']}</td>
-                                <td>{$filaD['cupo_maximo']} vacantes</td>
-                                <td><a class='btn' href='?accion=clubes&inscribir_id={$filaD['club_id']}'>Inscribirme</a></td>
+                                <td>{$nombre_club}</td>
+                                <td>{$cupo} vacantes</td>
+                                <td>
+                                    <button type='button' class='btn' style='cursor:pointer; border:none;' 
+                                            onclick=\"abrirConfirmacion('{$id_c}', '{$nombre_club}', '{$descripcion_club}', '{$cupo}')\">
+                                        Inscribirme
+                                    </button>
+                                </td>
                             </tr>";
                     }
                     echo "</tbody></table>";
@@ -342,6 +419,49 @@
         </div>
     </main>
 </div>
+
+<div id="modalConfirmarClub" class="modal-club" style="display: none;">
+    <div class="modal-club-contenido">
+        <div class="modal-club-header" id="modalTitulo">Información del Club</div>
+        <div class="modal-club-detalles">
+            <p><strong>Descripción:</strong> <span id="modalDescripcion"></span></p>
+            <p><strong>Cupo Disponible:</strong> <span id="modalCupo"></span> vacantes</p>
+            <p style="margin-top: 15px; color: #c0392b; font-weight: bold;">¿Estás seguro de que deseas inscribirte a este club?</p>
+        </div>
+        <div class="modal-club-acciones">
+            <button class="btn-modal-cancelar" onclick="cerrarConfirmacion()">Cancelar</button>
+            <a id="btnConfirmarInscripcion" href="#" class="btn-modal-confirmar">Confirmar e Inscribirme</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Función para abrir el modal y rellenar la información dinámicamente
+    function abrirConfirmacion(id, nombre, descripcion, cupo) {
+        document.getElementById('modalTitulo').innerText = "Información del Club: " + nombre;
+        document.getElementById('modalDescripcion').innerText = descripcion;
+        document.getElementById('modalCupo').innerText = cupo;
+        
+        // Asignamos la dirección final al botón de confirmación del modal
+        document.getElementById('btnConfirmarInscripcion').href = "?accion=clubes&inscribir_id=" + id;
+        
+        // Mostramos el modal usando flex para centrarlo en pantalla
+        document.getElementById('modalConfirmarClub').style.display = 'flex';
+    }
+
+    // Función para cerrar el modal si el usuario se arrepiente
+    function cerrarConfirmacion() {
+        document.getElementById('modalConfirmarClub').style.display = 'none';
+    }
+
+    // Cerrar el modal automáticamente si se hace clic fuera del recuadro blanco
+    window.onclick = function(event) {
+        var modal = document.getElementById('modalConfirmarClub');
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
 
 </body>
 </html>
