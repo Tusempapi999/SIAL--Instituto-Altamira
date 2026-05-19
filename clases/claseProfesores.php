@@ -1,5 +1,5 @@
 <?php
-include('claseUser.php'); 
+require_once('claseUser.php'); 
 
 class profesor extends user { 
 

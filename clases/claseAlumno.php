@@ -1,5 +1,5 @@
 <?php
-include('clases/claseUser.php');
+require_once('clases/claseUser.php');
 
 class alumno extends user {
 

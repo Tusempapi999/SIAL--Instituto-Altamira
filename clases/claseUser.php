@@ -1,5 +1,5 @@
 <?php
-    include('conexion.php'); // Se incluye el archivo de conexión a la base de datos
+    require_once('conexion.php'); // Se incluye el archivo de conexión a la base de datos
 
     class User extends Conexion { // Se crea la clase User que hereda de la clase Conexion
     
