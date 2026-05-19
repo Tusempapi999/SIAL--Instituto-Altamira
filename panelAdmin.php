@@ -162,21 +162,28 @@
 
         if(isset($_GET['opcion']) && $_GET['opcion'] == "matricular") {
             // Título del formulario de matriculación
-            echo "<h2>Matricular alumno en un grupo</h2>";
+            
+                echo '
+                <div class="formulario-estilo-imagen">
+                <h2>Matricular alumno en un grupo</h2>
+                <form method="post">
+                    <div class="form-group">
+                        <label>Matricula</label>
+                        <input type="text" name="alumno_id" placeholder="Matricula de alumno" required>
+                    </div>
 
-            // Formulario para matricular alumno
-            echo "<form method='post'>";
+                    <div class="form-group">
+                        <label>Id del grupo</label>
+                        <input type="text" name="grupo_id" placeholder="ID del grupo" required>
+                    </div>
 
-            // Campo para ingresar ID del alumno
-            echo "Matricula del alumno: <input type='text' name='alumno_id' required><br><br>";
-
-            // Campo para ingresar ID del grupo
-            echo "ID del grupo: <input type='text' name='grupo_id' required><br><br>";
-
-            // Botón para enviar datos al servidor
-            echo "<input type='submit' name='matricular' value='Matricular'>";
-            echo "</form>";
-        }
+                    <div class="acciones-form">
+                        <a  href="?opcion=matricular" class="btn-accion btn-regresar" > Matricular</a>
+                        <a href="?opcion=listar" class="btn-accion btn-regresar">Regresar</a>
+                    </div>
+                </form>
+                </div>';
+        }   
 
         if(isset($_POST['matricular'])) {
             
