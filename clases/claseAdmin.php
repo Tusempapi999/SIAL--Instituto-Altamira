@@ -36,4 +36,9 @@
             $this->sentencia = "SELECT * FROM grupo WHERE grado='$grado' AND letra_grupo='$letra_grupo'";
             return $this->obtener_sentencia(); // Se ejecuta la sentencia SQL y se devuelve el resultado
         }
+
+        public function alumno_id_de_usuario($usuario_id) { // Función para obtener el ID del alumno a partir del ID del usuario
+            $this->sentencia = "SELECT id FROM alumno WHERE usuario_id='$usuario_id'";
+            return $this->obtener_sentencia(); // Se ejecuta la sentencia SQL y se devuelve el resultado
+        }
     }

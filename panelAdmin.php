@@ -192,9 +192,9 @@
 
         if(isset($_POST['matricular'])) {
             
-            
+            $usuario_id = $_POST['alumno_id']; // Captura la matrícula del alumno desde el formulario
             // Captura ID del alumno
-            $alumno_id = $_POST['alumno_id'];
+            $alumno_id = $admin->alumno_id_de_usuario($usuario_id)->fetch_assoc()['id']; // Obtiene el ID del alumno a partir del ID del usuario
 
             // Captura letra del grupo
             $letra_grupo = $_POST['letra_grupo'];
