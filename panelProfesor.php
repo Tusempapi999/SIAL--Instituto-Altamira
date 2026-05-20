@@ -446,6 +446,7 @@
                                                 style='padding:8px; width:100%; max-width:250px; border-radius:4px; border:1px solid #ccc;' required>
                                             <option value='presente' " . ($estado_actual == 'presente' ? 'selected' : '') . ">Presente</option>
                                             <option value='sin justificar' " . ($estado_actual == 'sin justificar' ? 'selected' : '') . ">Falta</option>
+                                            <option value='justificada' " . ($estado_actual == 'justificada' ? 'selected' : '') . ">Falta Justificada</option>
                                             <option value='retardo' " . ($estado_actual == 'retardo' ? 'selected' : '') . ">Retardo</option>
                                         </select>
                                     </td>
