@@ -1,3 +1,50 @@
+<?php
+// ========================================================
+// 1. INCLUSIONES Y REQUERIMIENTOS CRÍTICOS AL INICIO
+// ========================================================
+require_once('conexion.php');
+require_once('clases/claseJustificante.php');
+include('clases/claseAlumno.php');
+
+$conexion = new Conexion();
+$objAlumno = new alumno();
+
+// Variables globales para mensajes de retroalimentación en justificantes
+$msg_justificante = "";
+$tipo_msg = ""; 
+
+
+/* ========================================================
+   2. PROCESO LÓGICO: ALTA DE JUSTIFICANTE (POST)
+   ======================================================== */
+if (isset($_POST['alumno_id']) && isset($_POST['fecha']) && isset($_POST['fecha_fin']) && isset($_POST['motivo'])) {
+    $alumno_post_id = $_POST['alumno_id']; 
+    $fecha = $_POST['fecha']; 
+    $fecha_fin = $_POST['fecha_fin']; 
+    $motivo = $_POST['motivo']; 
+
+    // Creamos el objeto con los datos del formulario
+    $justificante = new justificante($conexion, $alumno_post_id, $fecha, $fecha_fin, $motivo);
+    $resultado = $justificante->crear(); 
+
+    if ($resultado == "no_existe") {
+        $msg_justificante = "El alumno con ID $alumno_post_id no existe en la base de datos.";
+        $tipo_msg = "error";
+    } elseif ($resultado == "fecha_invalida") {
+        $msg_justificante = "Formato de fecha inválido. Recuerda usar el calendario.";
+        $tipo_msg = "error";
+    } elseif ($resultado == "rango_invalido") {
+        $msg_justificante = "La fecha final no puede ser menor que la fecha de inicio.";
+        $tipo_msg = "error";
+    } elseif ($resultado == "ok") {
+        $msg_justificante = "Justificante generado correctamente. En espera de respuesta por los administradores.";
+        $tipo_msg = "exito";
+    } else {
+        $msg_justificante = "Error crítico al intentar insertar los datos.";
+        $tipo_msg = "error";
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -80,18 +127,20 @@
             SIAL<br><span>Altamira</span>
         </div>
 
-        <?php
-        // SIMULACIÓN (luego va por SESSION)
-        $alumno_id = 1; // ESTE ES alumno.id (NO usuario.id)
-        ?>
-
         <nav class="menu-lateral">
             <a href="?accion=verhorario">Ver horario</a>
+            <hr>
             <a href="?accion=listara">Listar compañeros</a>
+            <hr>
             <a href="?accion=listarp">Listar profesores</a>
+            <hr>
             <a href="?accion=faltasasistencias">Faltas y asistencias</a>
+            <hr>
             <a href="?accion=vercalificaciones">Ver calificaciones</a>
+            <hr>
             <a href="?accion=clubes">Clubes sabatinos</a>
+            <hr>
+            <a href="?accion=justificantes" >Solicitar Justificante</a>
         </nav>
     </aside>
 
@@ -111,18 +160,175 @@
         
         <div class="panel-vacio">
 
-        <?php
-        include('clases/claseAlumno.php');
-        $objAlumno = new alumno();
+        <?php if (!empty($msg_justificante)): ?>
+            <div style="padding: 15px; margin-bottom: 20px; border-radius: 4px; background-color: <?php echo $tipo_msg == 'exito' ? '#d4edda' : '#f8d7da'; ?>; color: <?php echo $tipo_msg == 'exito' ? '#155724' : '#721c24'; ?>; border: 1px solid <?php echo $tipo_msg == 'exito' ? '#c3e6cb' : '#f5c6cb'; ?>;">
+                <?php echo $msg_justificante; ?>
+            </div>
+        <?php endif; ?>
 
+        <?php
         $accion = $_GET['accion'] ?? '';
         $grupo_id = $_GET['grupo_id'] ?? null;
         $club_id = $_GET['club_id'] ?? null;
 
         /* =====================================================
+         NUEVA SECCIÓN: CREAR Y VER JUSTIFICANTES
+        ===================================================== */
+        if ($accion == 'justificantes') {
+            echo "<h2>Mis Justificantes Solicitados</h2>";
+            echo "<a href='?accion=crearjustif' class='btn-regresar'>Crear Justificante</a><br><br>";
+
+            $justificanteAlumno = new justificante($conexion, "", "", "", "");
+            $misJustificantes = $justificanteAlumno->JustificantesAlumno($alumno_id);
+
+            echo "<table class='tabla-alumno'>
+                    <thead>
+                        <tr>
+                            <th>Fecha Inicio</th>
+                            <th>Fecha Fin</th>
+                            <th>Motivo / Causa</th>
+                            <th>Estado Actual</th>
+                        </tr>
+                    </thead>
+                    <tbody>";
+
+            if ($misJustificantes && $misJustificantes->num_rows > 0) {
+                while ($fila = $misJustificantes->fetch_assoc()) {
+                    $badge_color = '#f39c12';
+                    if ($fila['estado'] == 'accepted' || $fila['estado'] == 'aceptado') $badge_color = '#2ecc71';
+                    if ($fila['estado'] == 'rechazado') $badge_color = '#e74c3c';
+
+                    echo "<tr>
+                            <td>{$fila['fecha']}</td>
+                            <td>{$fila['fecha_fin']}</td>
+                            <td>{$fila['motivo']}</td>
+                            <td>
+                                <span style='color:white;background:$badge_color;padding:3px 8px;border-radius:3px;font-size:12px;font-weight:bold;'>
+                                    {$fila['estado']}
+                                </span>
+                            </td>
+                          </tr>";
+                }
+            } else {
+                echo "<tr>
+                        <td colspan='4' style='text-align:center;color:#7f8c8d;'>
+                            No has registrado ninguna solicitud de justificante.
+                        </td>
+                      </tr>";
+            }
+            echo "</tbody></table>";
+        }
+
+        /* =====================================================
+        CREAR JUSTIFICANTE (ESTILOS Y FORMULARIO)
+        ===================================================== */
+        echo '
+        <style>
+        .panel-formulario {
+            max-width: 500px;
+            margin: 20px auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            font-family: Arial, sans-serif;
+        }
+        .panel-formulario h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 22px;
+            text-align: center;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="date"] {
+            width: 100%;
+            padding: 9px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .form-group input[readonly] {
+            background-color: #eee !important;
+            cursor: not-allowed;
+        }
+        .acciones-form {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 25px;
+        }
+        .btn-principal {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-principal:hover { background-color: #27ae60; }
+        .btn-regresar {
+            background-color: #0022ff;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
+            transition: background 0.2s;
+            text-align: center;
+        }
+        </style>
+        ';
+
+        if ($accion == 'crearjustif') {
+            echo '
+            <div class="panel-formulario">
+                <h2>Crear un nuevo Justificante Médico / Particular</h2>
+                <form method="POST">
+                    <div class="form-group">
+                        <label>ID del Alumno (Confirmación):</label>
+                        <input type="text" name="alumno_id" value="' . $alumno_id . '" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de Inicio de Inasistencia:</label>
+                        <input type="date" name="fecha" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha Finalización de Inasistencia:</label>
+                        <input type="date" name="fecha_fin" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Motivo o Justificación Detallada:</label>
+                        <input type="text" name="motivo" required>
+                    </div>
+                    <div class="acciones-form">
+                        <input type="submit" class="btn-principal" value="Generar Trámite">
+                        <a href="?accion=justificantes" class="btn-regresar">Volver</a>
+                    </div>
+                </form>
+            </div>';
+        }
+
+        /* =====================================================
         LISTAR COMPAÑEROS
         ===================================================== */
-        if ($accion == 'listara') {
+        elseif ($accion == 'listara') {
             $grupo_id = 1; 
             $res = $objAlumno->Listar_alumnos($grupo_id);
 
@@ -138,7 +344,6 @@
                             </tr>
                         </thead>
                         <tbody>";
-
                 while ($fila = $res->fetch_assoc()) {
                     echo "<tr>
                             <td>{$fila['alumno_id']}</td>
@@ -170,7 +375,6 @@
                             </tr>
                         </thead>
                         <tbody>";
-
                 while ($fila = $res->fetch_assoc()) {
                     echo "<tr>
                             <td>{$fila['nombre']}</td>
@@ -327,7 +531,6 @@
         elseif ($accion == 'clubes') {
             echo "<div class='seccion-clubes'>";
 
-            // Procesar inscripción de un club seleccionado
             if (isset($_GET['inscribir_id'])) {
                 $id_del_club = intval($_GET['inscribir_id']);
                 $misClubs = $objAlumno->listarMisClubs($alumno_id);
@@ -342,7 +545,6 @@
                 echo "<a href='?accion=clubes' class='btn'>Volver a mi panel de clubes</a>";
             }
 
-            // Ver asistencias del club seleccionado
             elseif (isset($_GET['club_id'])) {
                 $id_del_club = intval($_GET['club_id']);
                 $resAsis = $objAlumno->verAsistenciaClub($id_del_club, $alumno_id);
@@ -362,11 +564,9 @@
                 echo "<a href='?accion=clubes' class='btn'>Volver</a>";
             }
 
-            // Listado General Principal de Clubes
             else {
                 echo "<h2>Clubes Sabatinos</h2>";
 
-                // 1. Clubes inscritos por el alumno
                 $misClubes = $objAlumno->listarMisClubs($alumno_id);
                 echo "<h3>Mis Clubes</h3>";
                 if ($misClubes && $misClubes->num_rows > 0) {
@@ -383,14 +583,12 @@
                     echo "<p>No tienes inscripciones activas.</p>";
                 }
 
-                // 2. Clubes Disponibles en el sistema
                 $disponibles = $objAlumno->listarClubesDisponibles($alumno_id);
                 echo "<br><br> <h3>Clubes Disponibles para Inscripción</h3>";
                 if ($disponibles && $disponibles->num_rows > 0) {
                     echo "<table class='tabla-alumno'>
                             <thead><tr><th>Nombre del Club</th><th>Cupo Máx.</th><th>Acción</th></tr></thead><tbody>";
                     while ($filaD = $disponibles->fetch_assoc()) {
-                        // Resguardamos las variables limpias para inyectar en la función JS
                         $nombre_club = htmlspecialchars($filaD['club'], ENT_QUOTES, 'UTF-8');
                         $descripcion_club = isset($filaD['descripcion']) ? htmlspecialchars($filaD['descripcion'], ENT_QUOTES, 'UTF-8') : 'Sin descripción disponible.';
                         $cupo = intval($filaD['cupo_maximo']);
@@ -420,7 +618,7 @@
     </main>
 </div>
 
-<div id="modalConfirmarClub" class="modal-club" style="display: none;">
+<div id="modalConfirmarClub" class="modal-club">
     <div class="modal-club-contenido">
         <div class="modal-club-header" id="modalTitulo">Información del Club</div>
         <div class="modal-club-detalles">
@@ -436,25 +634,18 @@
 </div>
 
 <script>
-    // Función para abrir el modal y rellenar la información dinámicamente
     function abrirConfirmacion(id, nombre, descripcion, cupo) {
         document.getElementById('modalTitulo').innerText = "Información del Club: " + nombre;
         document.getElementById('modalDescripcion').innerText = descripcion;
         document.getElementById('modalCupo').innerText = cupo;
-        
-        // Asignamos la dirección final al botón de confirmación del modal
         document.getElementById('btnConfirmarInscripcion').href = "?accion=clubes&inscribir_id=" + id;
-        
-        // Mostramos el modal usando flex para centrarlo en pantalla
         document.getElementById('modalConfirmarClub').style.display = 'flex';
     }
 
-    // Función para cerrar el modal si el usuario se arrepiente
     function cerrarConfirmacion() {
         document.getElementById('modalConfirmarClub').style.display = 'none';
     }
 
-    // Cerrar el modal automáticamente si se hace clic fuera del recuadro blanco
     window.onclick = function(event) {
         var modal = document.getElementById('modalConfirmarClub');
         if (event.target == modal) {

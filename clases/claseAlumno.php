@@ -162,5 +162,17 @@ class alumno extends user {
         ";
         return $this->obtener_sentencia();
     }
+    // ===== OBTENER NOMBRE REAL DEL ALUMNO DIRECTAMENTE POR SU ID =====
+    // ===== OBTENER NOMBRE REAL BUSCANDO POR CUALQUIER ID =====
+    public function obtenerNombrePorId($id_buscar) {
+        $this->sentencia = "
+            SELECT usuario.nombre 
+            FROM alumno
+            INNER JOIN usuario ON alumno.usuario_id = usuario.id
+            WHERE alumno.id = '$id_buscar' OR usuario.id = '$id_buscar'
+            LIMIT 1
+        ";
+        return $this->obtener_sentencia();
+    }
 }
 ?>
